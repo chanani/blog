@@ -81,7 +81,7 @@ async function resolvePostInfo(category, slug, owner, repo, token) {
       if (m) return { title: m[1], cover: '' };
     }
   } catch {}
-  return { title: slug.replace(/_/g, ' '), cover: '' };
+  return null;
 }
 
 async function resolveBookInfo(slug, owner, repo, booksPath, token) {
@@ -241,6 +241,7 @@ export default async function handler(req, res) {
           const m = decoded.match(/^\/post\/([^/]+)\/([^/]+)$/);
           if (!m) return null;
           const info = await resolvePostInfo(m[1], m[2], ghOwner, ghRepo, ghToken);
+          if (!info) return null;
           return { path: decoded, title: info.title, cover: info.cover, count: h.count };
         }),
       ),
