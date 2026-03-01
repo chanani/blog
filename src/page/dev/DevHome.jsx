@@ -171,7 +171,9 @@ function DevHome() {
     });
   }, [posts]);
 
+  const mountedRef = useRef(false);
   useEffect(() => {
+    if (!mountedRef.current) { mountedRef.current = true; return; }
     setCurrentPage(1);
   }, [selectedCategory, searchQuery, sortOrder]);
 
