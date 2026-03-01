@@ -11,6 +11,7 @@ import { FiArrowLeft, FiCalendar, FiEdit3, FiChevronLeft, FiChevronRight, FiList
 import Giscus from '@giscus/react';
 import useDevStore from '../../store/useDevStore';
 import { fetchViewCount } from '../../api/goatcounter';
+import ImageModal from '../../components/ImageModal';
 import '../chapter/Chapter.css';
 import './DevPost.css';
 
@@ -95,6 +96,8 @@ function DevPost() {
   const [copied, setCopied] = useState(false);
   const [shareToast, setShareToast] = useState(null);
   const [viewCount, setViewCount] = useState(null);
+  const [zoomImages, setZoomImages] = useState([]);
+  const [zoomIndex, setZoomIndex] = useState(-1);
 
   const SITE_URL = 'https://chanani-books.vercel.app';
 
@@ -195,17 +198,34 @@ function DevPost() {
           }
           return `${GITHUB_RAW}/${resolved.join('/')}`;
         })();
-        return <img src={resolvedSrc} alt={alt} {...props} />;
-      },
-      code({ inline, className, children, ...props }) {
-        const match = /language-(\w+)/.exec(className || '');
-        return !inline && match ? (
-          <CodeBlock language={match[1]}>{children}</CodeBlock>
-        ) : (
-          <code className={className} {...props}>
-            {children}
-          </code>
+        return (
+          <img
+            src={resolvedSrc}
+            alt={alt}
+            style={{ cursor: 'zoom-in' }}
+            onClick={() => {
+              const imgs = Array.from(document.querySelectorAll('.chapter-body img'))
+                .map((el) => ({ src: el.src, alt: el.alt }));
+              const idx = imgs.findIndex((i) => i.src === resolvedSrc);
+              setZoomImages(imgs);
+              setZoomIndex(idx >= 0 ? idx : 0);
+            }}
+            {...props}
+          />
         );
+      },
+      pre({ node }) {
+        const codeNode = node.children?.[0];
+        if (codeNode?.tagName === 'code') {
+          const cls = codeNode.properties?.className?.[0] || '';
+          const match = /language-(\w+)/.exec(cls);
+          const text = codeNode.children?.map((c) => c.value).join('') || '';
+          return <CodeBlock language={match?.[1] || 'text'}>{text}</CodeBlock>;
+        }
+        return <pre>{node.children}</pre>;
+      },
+      code({ className, children, ...props }) {
+        return <code className={className} {...props}>{children}</code>;
       },
     }),
     [category],
@@ -552,6 +572,13 @@ function DevPost() {
           <span>{shareToast}</span>
         </div>
       )}
+
+      <ImageModal
+        images={zoomImages}
+        index={zoomIndex}
+        onClose={() => setZoomIndex(-1)}
+        onNavigate={setZoomIndex}
+      />
     </main>
   );
 }
