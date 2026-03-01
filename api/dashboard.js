@@ -216,10 +216,9 @@ export default async function handler(req, res) {
     yd.setUTCDate(yd.getUTCDate() - 1);
     const stats = recent?.stats || [];
 
-    // Post paths from GoatCounter
+    // Post paths from GoatCounter (여유분 포함하여 가져옴)
     const rawPosts = (hits?.hits || [])
-      .filter((h) => h.path && decodeURIComponent(h.path).startsWith('/post/'))
-      .slice(0, 4);
+      .filter((h) => h.path && decodeURIComponent(h.path).startsWith('/post/'));
 
     // Book slugs from GoatCounter
     const bookMap = {};
@@ -234,7 +233,7 @@ export default async function handler(req, res) {
     const rawBooks = Object.values(bookMap).sort((a, b) => b.count - a.count).slice(0, 3);
 
     // Resolve titles/covers from GitHub in parallel
-    const [topPosts, topBooks] = await Promise.all([
+    const [resolvedPosts, topBooks] = await Promise.all([
       Promise.all(
         rawPosts.map(async (h) => {
           const decoded = decodeURIComponent(h.path);
@@ -260,7 +259,7 @@ export default async function handler(req, res) {
         yesterday: stats.find((s) => s.day === yd.toISOString().split('T')[0])?.daily || 0,
         total: allTime?.total || 0,
       },
-      topPosts: topPosts.filter(Boolean),
+      topPosts: resolvedPosts.filter(Boolean).slice(0, 4),
       topBooks,
       recentComments,
       recentGuestbook,
