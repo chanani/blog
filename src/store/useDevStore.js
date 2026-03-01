@@ -11,7 +11,7 @@ const useDevStore = create((set, get) => ({
   commentCounts: {},
 
   loadPosts: async () => {
-    if (get().posts.length > 0) return;
+    if (get().posts.length > 0 || get().loading) return;
     set({ loading: true, error: null });
     try {
       const [posts, commentCounts] = await Promise.all([

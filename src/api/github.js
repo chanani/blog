@@ -607,7 +607,15 @@ export async function fetchDevPostList() {
       }),
     );
 
-    return posts.sort((a, b) => {
+    const seen = new Set();
+    const unique = posts.filter((p) => {
+      const key = `${p.category}/${p.slug}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    return unique.sort((a, b) => {
       if (a.date && b.date) return b.date.localeCompare(a.date);
       return a.title.localeCompare(b.title);
     });
