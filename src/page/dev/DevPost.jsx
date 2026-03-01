@@ -369,7 +369,7 @@ function DevPost() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <button className="back-link" onClick={() => navigate('/')}>
+        <button className="back-link" onClick={() => navigate(-1)}>
           <FiArrowLeft size={16} />
           <span>목록으로 돌아가기</span>
         </button>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { FiSearch, FiX, FiCalendar, FiEye, FiMessageSquare, FiChevronLeft, FiChevronRight, FiChevronDown } from 'react-icons/fi';
@@ -116,7 +116,15 @@ function DevHome() {
     refreshPosts,
   } = useDevStore();
 
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const setCurrentPage = (page) => {
+    setSearchParams((prev) => {
+      if (page <= 1) { prev.delete('page'); return prev; }
+      prev.set('page', String(page));
+      return prev;
+    }, { replace: true });
+  };
   const [sortOrder, setSortOrder] = useState('latest');
   const [viewCounts, setViewCounts] = useState({});
   const POSTS_PER_PAGE = 5;
