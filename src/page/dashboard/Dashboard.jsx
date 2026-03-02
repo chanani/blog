@@ -30,7 +30,7 @@ function Dashboard() {
         <meta name="description" content="차나니의 블로그 - 개발 기술 블로그 & 독서 기록" />
         <meta property="og:title" content="차나니의 블로그" />
         <meta property="og:description" content="개발 기술 블로그 & 독서 기록" />
-        <link rel="canonical" href="https://chanani-books.vercel.app/" />
+        <link rel="canonical" href="https://chanhan.blog/" />
       </Helmet>
 
       {loading && (

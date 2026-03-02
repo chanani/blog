@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SITE_URL = 'https://chanani-books.vercel.app';
+const SITE_URL = 'https://chanhan.blog';
 const GITHUB_API = 'https://api.github.com';
 
 const OWNER = process.env.VITE_GITHUB_OWNER || 'chanani';

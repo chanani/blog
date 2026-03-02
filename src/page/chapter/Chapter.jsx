@@ -101,7 +101,7 @@ function Chapter() {
   const [zoomImages, setZoomImages] = useState([]);
   const [zoomIndex, setZoomIndex] = useState(-1);
 
-  const SITE_URL = 'https://chanani-books.vercel.app';
+  const SITE_URL = 'https://chanhan.blog';
 
   const showShareToast = (message) => {
     setShareToast(message);
@@ -576,7 +576,7 @@ function Chapter() {
         <meta name="description" content={`${currentChapter.bookTitle} - ${currentChapter.title} 독서 정리`} />
         <meta property="og:title" content={`${currentChapter.title} - 차나니의 블로그`} />
         <meta property="og:description" content={`${currentChapter.bookTitle} - ${currentChapter.title}`} />
-        <link rel="canonical" href={`https://chanani-books.vercel.app/book/${bookSlug}/read/${chapterPath}`} />
+        <link rel="canonical" href={`https://chanhan.blog/book/${bookSlug}/read/${chapterPath}`} />
       </Helmet>
       <div className="read-progress-bar" style={{ width: `${readProgress}%` }} />
 
@@ -808,7 +808,7 @@ function Chapter() {
             reactionsEnabled="1"
             emitMetadata="0"
             inputPosition="top"
-            theme={`https://chanani-books.vercel.app/giscus-comment-${giscusTheme}.css?v=2`}
+            theme={`https://chanhan.blog/giscus-comment-${giscusTheme}.css?v=2`}
             lang="ko"
           />
         </section>

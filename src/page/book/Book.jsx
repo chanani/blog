@@ -15,7 +15,7 @@ function Book() {
   const [shareOpen, setShareOpen] = useState(false);
   const [shareToast, setShareToast] = useState(null);
 
-  const SITE_URL = 'https://chanani-books.vercel.app';
+  const SITE_URL = 'https://chanhan.blog';
 
   const showShareToast = (message) => {
     setShareToast(message);
@@ -144,7 +144,7 @@ function Book() {
         <meta property="og:title" content={`${currentBook.title} - 차나니의 블로그`} />
         <meta property="og:description" content={`${currentBook.title} 독서 기록`} />
         {currentBook.cover && <meta property="og:image" content={currentBook.cover} />}
-        <link rel="canonical" href={`https://chanani-books.vercel.app/book/${bookSlug}`} />
+        <link rel="canonical" href={`https://chanhan.blog/book/${bookSlug}`} />
       </Helmet>
       <motion.div
         className="book-wrap"

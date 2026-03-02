@@ -29,7 +29,7 @@ function About() {
         <meta name="description" content="서버 개발자 이찬한입니다. 차나니의 블로그 운영자 소개 페이지입니다." />
         <meta property="og:title" content="소개 - 차나니의 블로그" />
         <meta property="og:description" content="서버 개발자 이찬한입니다." />
-        <link rel="canonical" href="https://chanani-books.vercel.app/about" />
+        <link rel="canonical" href="https://chanhan.blog/about" />
       </Helmet>
       <div className="about-card">
         <div className="about-profile">

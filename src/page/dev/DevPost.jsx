@@ -99,7 +99,7 @@ function DevPost() {
   const [zoomImages, setZoomImages] = useState([]);
   const [zoomIndex, setZoomIndex] = useState(-1);
 
-  const SITE_URL = 'https://chanani-books.vercel.app';
+  const SITE_URL = 'https://chanhan.blog';
 
   const showShareToast = (message) => {
     setShareToast(message);
@@ -330,7 +330,7 @@ function DevPost() {
         <meta property="og:title" content={`${currentPost.title} - 차나니의 블로그`} />
         <meta property="og:description" content={currentPost.description || currentPost.title} />
         {currentPost.cover && <meta property="og:image" content={currentPost.cover} />}
-        <link rel="canonical" href={`https://chanani-books.vercel.app/post/${category}/${slug}`} />
+        <link rel="canonical" href={`https://chanhan.blog/post/${category}/${slug}`} />
       </Helmet>
       <div className="read-progress-bar" style={{ width: `${readProgress}%` }} />
 
@@ -560,7 +560,7 @@ function DevPost() {
             reactionsEnabled="1"
             emitMetadata="0"
             inputPosition="top"
-            theme={`https://chanani-books.vercel.app/giscus-comment-${giscusTheme}.css?v=2`}
+            theme={`https://chanhan.blog/giscus-comment-${giscusTheme}.css?v=2`}
             lang="ko"
           />
         </section>

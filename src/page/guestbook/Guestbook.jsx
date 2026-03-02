@@ -28,7 +28,7 @@ function Guestbook() {
         <meta name="description" content="차나니의 블로그 방명록입니다. 자유롭게 글을 남겨주세요." />
         <meta property="og:title" content="방명록 - 차나니의 블로그" />
         <meta property="og:description" content="차나니의 블로그 방명록입니다. 자유롭게 글을 남겨주세요." />
-        <link rel="canonical" href="https://chanani-books.vercel.app/guestbook" />
+        <link rel="canonical" href="https://chanhan.blog/guestbook" />
       </Helmet>
 
       <motion.div
@@ -55,7 +55,7 @@ function Guestbook() {
             reactionsEnabled="0"
             emitMetadata="0"
             inputPosition="bottom"
-            theme={`https://chanani-books.vercel.app/giscus-${giscusTheme}.css?v=4`}
+            theme={`https://chanhan.blog/giscus-${giscusTheme}.css?v=4`}
             lang="ko"
           />
         </section>
