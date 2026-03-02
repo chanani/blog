@@ -79,7 +79,7 @@ export default async function handler(req, res) {
     if (ghToken) {
       const ghHeaders = { Authorization: `Bearer ${ghToken}`, 'Content-Type': 'application/json' };
       const discussionQuery = `{
-        repository(owner: "${ghOwner}", name: "books-blog") {
+        repository(owner: "${ghOwner}", name: "blog") {
           discussions(first: 30, orderBy: {field: UPDATED_AT, direction: DESC}, categoryId: "DIC_kwDORI3Ks84C15da") {
             nodes {
               title

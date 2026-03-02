@@ -127,7 +127,7 @@ export default async function handler(req, res) {
 
   try {
     const guestbookQuery = `{
-      repository(owner: "${ghOwner}", name: "books-blog") {
+      repository(owner: "${ghOwner}", name: "blog") {
         discussions(first: 20, orderBy: {field: UPDATED_AT, direction: DESC}, categoryId: "DIC_kwDORI3Ks84C15da") {
           nodes {
             title

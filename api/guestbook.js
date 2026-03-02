@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   const pageSize = 10;
 
   const query = `{
-    repository(owner: "${ghOwner}", name: "books-blog") {
+    repository(owner: "${ghOwner}", name: "blog") {
       discussions(first: 10, categoryId: "DIC_kwDORI3Ks84C15da") {
         nodes {
           title

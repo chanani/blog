@@ -347,7 +347,7 @@ export async function fetchBookDetail(bookSlug) {
 }
 
 // Fetch discussion comment counts from giscus (GitHub Discussions)
-const BLOG_REPO = 'books-blog';
+const BLOG_REPO = 'blog';
 const DISCUSSION_CATEGORY_ID = 'DIC_kwDORI3Ks84C15da';
 
 export async function fetchDiscussionCounts(bookSlug) {
