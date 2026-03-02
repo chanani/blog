@@ -7,7 +7,7 @@ const SITE_URL = 'https://chanhan.blog';
 const GITHUB_API = 'https://api.github.com';
 
 const OWNER = process.env.VITE_GITHUB_OWNER || 'chanani';
-const REPO = process.env.VITE_GITHUB_REPO || 'Books';
+const REPO = process.env.VITE_GITHUB_REPO || 'blog-posts';
 const BOOKS_PATH = process.env.VITE_GITHUB_PATH || 'books';
 const DEV_PATH = 'dev';
 const TOKEN = process.env.VITE_GITHUB_TOKEN || '';
