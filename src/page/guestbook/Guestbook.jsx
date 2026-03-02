@@ -46,7 +46,7 @@ function Guestbook() {
 
         <section className="guestbook-comments">
           <Giscus
-            repo="chanani/books-blog"
+            repo="chanani/blog"
             repoId="R_kgDORI3Ksw"
             category="Announcements"
             categoryId="DIC_kwDORI3Ks84C15da"
