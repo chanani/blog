@@ -227,6 +227,7 @@ export default async function handler(req, res) {
       .forEach((h) => {
         const decoded = decodeURIComponent(h.path);
         const slug = decoded.match(/^\/book\/([^/]+)/)[1];
+        if (/["%<>]/.test(slug)) return;
         if (!bookMap[slug]) bookMap[slug] = { slug, count: 0 };
         bookMap[slug].count += h.count;
       });
