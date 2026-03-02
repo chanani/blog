@@ -230,7 +230,7 @@ export default async function handler(req, res) {
         if (!bookMap[slug]) bookMap[slug] = { slug, count: 0 };
         bookMap[slug].count += h.count;
       });
-    const rawBooks = Object.values(bookMap).sort((a, b) => b.count - a.count).slice(0, 3);
+    const rawBooks = Object.values(bookMap).sort((a, b) => b.count - a.count).slice(0, 5);
 
     // Resolve titles/covers from GitHub in parallel
     const [resolvedPosts, topBooks] = await Promise.all([

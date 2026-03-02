@@ -612,6 +612,10 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
   }
+
+  .dash-book-card:nth-child(n+4) {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {
