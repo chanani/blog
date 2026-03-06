@@ -52,8 +52,9 @@ function findCoverUrl(files, basePath, headers) {
 async function resolvePostInfo(category, slug, owner, repo, token) {
   const headers = ghHeaders(token);
   const basePath = `${GH_API}/repos/${owner}/${repo}/contents/dev/${encodeURIComponent(category)}/${encodeURIComponent(slug)}`;
+  const signal = AbortSignal.timeout(3000);
   try {
-    const dirRes = await fetch(basePath, { headers });
+    const dirRes = await fetch(basePath, { headers, signal });
     if (dirRes.ok) {
       const files = await dirRes.json();
       const cover = findCoverUrl(files);
@@ -87,8 +88,9 @@ async function resolvePostInfo(category, slug, owner, repo, token) {
 async function resolveBookInfo(slug, owner, repo, booksPath, token) {
   const headers = ghHeaders(token);
   const basePath = `${GH_API}/repos/${owner}/${repo}/contents/${booksPath}/${encodeURIComponent(slug)}`;
+  const signal = AbortSignal.timeout(3000);
   try {
-    const dirRes = await fetch(basePath, { headers });
+    const dirRes = await fetch(basePath, { headers, signal });
     if (!dirRes.ok) return { title: slug, cover: '' };
     const files = await dirRes.json();
 
@@ -216,9 +218,10 @@ export default async function handler(req, res) {
     yd.setUTCDate(yd.getUTCDate() - 1);
     const stats = recent?.stats || [];
 
-    // Post paths from GoatCounter (여유분 포함하여 가져옴)
+    // Post paths from GoatCounter (상위 6개만 resolve - 타임아웃 방지)
     const rawPosts = (hits?.hits || [])
-      .filter((h) => h.path && decodeURIComponent(h.path).startsWith('/post/'));
+      .filter((h) => h.path && decodeURIComponent(h.path).startsWith('/post/'))
+      .slice(0, 6);
 
     // Book slugs from GoatCounter
     const bookMap = {};
