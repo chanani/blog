@@ -236,9 +236,9 @@ export default async function handler(req, res) {
       });
     const rawBooks = Object.values(bookMap).sort((a, b) => b.count - a.count).slice(0, 5);
 
-    // Resolve titles/covers from GitHub in parallel
+    // Resolve titles/covers from GitHub in parallel (각 항목 독립 처리)
     const [resolvedPosts, topBooks] = await Promise.all([
-      Promise.all(
+      Promise.allSettled(
         rawPosts.map(async (h) => {
           const decoded = decodeURIComponent(h.path);
           const m = decoded.match(/^\/post\/([^/]+)\/([^/]+)$/);
@@ -247,13 +247,13 @@ export default async function handler(req, res) {
           if (!info) return null;
           return { path: decoded, title: info.title, cover: info.cover, count: h.count };
         }),
-      ),
-      Promise.all(
+      ).then((results) => results.map((r) => (r.status === 'fulfilled' ? r.value : null))),
+      Promise.allSettled(
         rawBooks.map(async (b) => {
           const info = await resolveBookInfo(b.slug, ghOwner, ghRepo, booksPath, ghToken);
           return { slug: b.slug, title: info.title, cover: info.cover, count: b.count };
         }),
-      ),
+      ).then((results) => results.map((r) => (r.status === 'fulfilled' ? r.value : null))),
     ]);
 
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=300');
@@ -268,7 +268,8 @@ export default async function handler(req, res) {
       recentComments,
       recentGuestbook,
     });
-  } catch {
+  } catch (err) {
+    console.error('[dashboard] handler error:', err?.message || err);
     res.json(empty);
   }
 }
