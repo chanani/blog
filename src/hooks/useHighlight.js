@@ -13,8 +13,9 @@ export function useHighlight(bookSlug, chapterPath) {
 
   const addHighlight = useCallback((text) => {
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+    const normalized = text.replace(/\s+/g, ' ').trim();
     setHighlights((prev) => {
-      const next = [...prev, { id, text }];
+      const next = [...prev, { id, text: normalized }];
       localStorage.setItem(key, JSON.stringify(next));
       return next;
     });

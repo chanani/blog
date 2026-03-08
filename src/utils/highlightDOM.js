@@ -31,15 +31,22 @@ function makeMarkEl(id, text, onRemove) {
   return mark;
 }
 
-// 태그 경계를 넘는 텍스트도 처리: 전체 텍스트 노드를 합쳐 위치를 찾고 여러 노드에 분할 적용
 function findAndHighlight(container, text, id, onRemove) {
   const textNodes = getTextNodes(container);
   if (!textNodes.length) return false;
 
-  // 각 텍스트 노드의 시작 위치를 기록
+  // 텍스트 노드를 연결할 때 단어 경계에서 공백 삽입 (br/블록 경계 대응)
   let fullText = '';
   const nodePositions = [];
-  for (const node of textNodes) {
+  for (let i = 0; i < textNodes.length; i++) {
+    const node = textNodes[i];
+    if (i > 0 && fullText.length > 0) {
+      const lastChar = fullText[fullText.length - 1];
+      const firstChar = node.textContent[0] || '';
+      if (!/\s/.test(lastChar) && firstChar && !/\s/.test(firstChar)) {
+        fullText += ' '; // br이나 블록 경계에 공백 삽입
+      }
+    }
     nodePositions.push({ node, start: fullText.length });
     fullText += node.textContent;
   }
@@ -49,7 +56,6 @@ function findAndHighlight(container, text, id, onRemove) {
 
   const end = idx + text.length;
 
-  // 범위에 걸친 노드 추출 (역순으로 처리해 offset 틀어짐 방지)
   const affected = nodePositions.filter(
     ({ node, start }) => start < end && start + node.textContent.length > idx
   );
@@ -62,6 +68,8 @@ function findAndHighlight(container, text, id, onRemove) {
     const before = node.textContent.slice(0, hlStart);
     const highlighted = node.textContent.slice(hlStart, hlEnd);
     const after = node.textContent.slice(hlEnd);
+
+    if (!highlighted) continue;
 
     const mark = makeMarkEl(id, highlighted, onRemove);
     const parent = node.parentNode;
