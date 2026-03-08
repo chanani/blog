@@ -1017,7 +1017,7 @@ mark.chapter-highlight {
   background: rgba(255, 220, 0, 0.45);
   color: inherit;
   border-radius: 2px;
-  padding: 0 1px;
+  padding: 0 18px 0 1px;
   cursor: pointer;
   position: relative;
   transition: background 0.15s;
@@ -1031,7 +1031,7 @@ mark.chapter-highlight::after {
   content: '✕';
   position: absolute;
   top: 50%;
-  right: -16px;
+  right: 2px;
   transform: translateY(-50%);
   font-size: 0.65rem;
   font-weight: 700;
