@@ -1030,9 +1030,9 @@ mark.chapter-highlight:hover {
 mark.chapter-highlight::after {
   content: '✕';
   position: absolute;
-  top: -18px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 50%;
+  right: -16px;
+  transform: translateY(-50%);
   font-size: 0.65rem;
   font-weight: 700;
   color: #fff;
