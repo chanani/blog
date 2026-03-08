@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
@@ -12,6 +12,8 @@ import Giscus from '@giscus/react';
 import useBookStore from '../../store/useBookStore';
 import { fetchViewCount } from '../../api/goatcounter';
 import ImageModal from '../../components/ImageModal';
+import { useHighlight } from '../../hooks/useHighlight';
+import { applyHighlightsToDOM } from '../../utils/highlightDOM';
 import './Chapter.css';
 
 function extractHeadings(content) {
@@ -100,6 +102,10 @@ function Chapter() {
   const [viewCount, setViewCount] = useState(null);
   const [zoomImages, setZoomImages] = useState([]);
   const [zoomIndex, setZoomIndex] = useState(-1);
+  const [popupPos, setPopupPos] = useState(null);
+  const [pendingText, setPendingText] = useState('');
+  const chapterBodyRef = useRef(null);
+  const { highlights, addHighlight, removeHighlight } = useHighlight(bookSlug, chapterPath);
 
   const SITE_URL = 'https://chanhan.blog';
 
@@ -154,6 +160,41 @@ function Chapter() {
       return next;
     });
   };
+
+  const handleMouseUp = useCallback(() => {
+    const selection = window.getSelection();
+    const text = selection?.toString().trim();
+    if (!text || text.length < 2) {
+      setPopupPos(null);
+      return;
+    }
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    setPopupPos({
+      x: rect.left + rect.width / 2 + window.scrollX,
+      y: rect.top + window.scrollY - 44,
+    });
+    setPendingText(text);
+  }, []);
+
+  const handleHighlightSave = useCallback(() => {
+    if (!pendingText) return;
+    addHighlight(pendingText);
+    window.getSelection()?.removeAllRanges();
+    setPopupPos(null);
+    setPendingText('');
+  }, [pendingText, addHighlight]);
+
+  const handlePopupClose = useCallback(() => {
+    setPopupPos(null);
+    setPendingText('');
+  }, []);
+
+  useEffect(() => {
+    const container = chapterBodyRef.current;
+    if (!container || !currentChapter?.content) return;
+    applyHighlightsToDOM(container, highlights, removeHighlight);
+  }, [highlights, currentChapter?.content, removeHighlight]);
 
   const downloadPdf = async () => {
     setSettingsOpen(false);
@@ -757,7 +798,12 @@ function Chapter() {
             )}
           </header>
 
-          <div className={`chapter-body font-${fontFamily}${sepiaMode ? ' sepia' : ''}`} style={{ fontSize: `${fontSize}px` }}>
+          <div
+            ref={chapterBodyRef}
+            className={`chapter-body font-${fontFamily}${sepiaMode ? ' sepia' : ''}`}
+            style={{ fontSize: `${fontSize}px` }}
+            onMouseUp={handleMouseUp}
+          >
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeRaw]}
@@ -766,6 +812,21 @@ function Chapter() {
               {currentChapter.content}
             </ReactMarkdown>
           </div>
+
+          {popupPos && (
+            <div
+              className="highlight-popup"
+              style={{ left: popupPos.x, top: popupPos.y }}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <button className="highlight-popup-btn" onClick={handleHighlightSave}>
+                형광펜
+              </button>
+              <button className="highlight-popup-cancel" onClick={handlePopupClose}>
+                ✕
+              </button>
+            </div>
+          )}
         </article>
 
         {(prev || next) && (

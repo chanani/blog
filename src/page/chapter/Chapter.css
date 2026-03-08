@@ -1011,3 +1011,76 @@
 }
 
 /* pdf-loading uses .loading-dots from common.css */
+
+/* ── Highlight ── */
+mark.chapter-highlight {
+  background: rgba(255, 220, 0, 0.45);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+mark.chapter-highlight:hover {
+  background: rgba(255, 80, 80, 0.3);
+}
+
+mark.chapter-highlight:hover::after {
+  content: ' ✕';
+  font-size: 0.75em;
+  color: #e53e3e;
+}
+
+[data-theme='dark'] mark.chapter-highlight {
+  background: rgba(255, 220, 0, 0.25);
+}
+
+[data-theme='dark'] mark.chapter-highlight:hover {
+  background: rgba(255, 80, 80, 0.22);
+}
+
+/* ── Highlight Popup ── */
+.highlight-popup {
+  position: absolute;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  z-index: 300;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.highlight-popup-btn {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #1a1613;
+  background: rgba(255, 220, 0, 0.85);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.highlight-popup-btn:hover {
+  background: rgba(255, 200, 0, 1);
+}
+
+.highlight-popup-cancel {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 6px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.highlight-popup-cancel:hover {
+  color: var(--text-primary);
+}
