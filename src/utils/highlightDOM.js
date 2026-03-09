@@ -3,9 +3,9 @@ function getTextNodes(container) {
   const nodes = [];
   let node;
   while ((node = walker.nextNode())) {
-    if (!node.parentElement.closest('pre, code, mark')) {
-      nodes.push(node);
-    }
+    if (node.parentElement.closest('pre, code, mark')) continue;
+    if (!node.textContent.trim()) continue; // whitespace-only 노드 제외
+    nodes.push(node);
   }
   return nodes;
 }
@@ -51,10 +51,14 @@ function findAndHighlight(container, text, id, onRemove) {
     fullText += node.textContent;
   }
 
-  const idx = fullText.indexOf(text);
-  if (idx === -1) return false;
+  // whitespace를 유연하게 매칭 (블록 경계 \n 등 대응)
+  const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const pattern = escaped.replace(/\s+/g, '\\s+');
+  const match = new RegExp(pattern).exec(fullText);
+  if (!match) return false;
 
-  const end = idx + text.length;
+  const idx = match.index;
+  const end = idx + match[0].length;
 
   const affected = nodePositions.filter(
     ({ node, start }) => start < end && start + node.textContent.length > idx

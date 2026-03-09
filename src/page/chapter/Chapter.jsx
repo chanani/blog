@@ -161,20 +161,49 @@ function Chapter() {
     });
   };
 
-  const handleMouseUp = useCallback(() => {
-    const selection = window.getSelection();
-    const text = selection?.toString().trim();
-    if (!text || text.length < 2) {
-      setPopupPos(null);
-      return;
-    }
-    const range = selection.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-    setPopupPos({
-      x: rect.left + rect.width / 2 + window.scrollX,
-      y: rect.top + window.scrollY - 44,
-    });
-    setPendingText(text);
+  const lastTouchTimeRef = useRef(0);
+
+  const handlePopupDismiss = useCallback((e) => {
+    if (e.target.closest('.highlight-popup')) return;
+    setPopupPos(null);
+    setPendingText('');
+  }, []);
+
+  useEffect(() => {
+    const lastTouchTime = lastTouchTimeRef;
+
+    const onMouseUp = () => {
+      if (Date.now() - lastTouchTime.current < 600) return;
+      const selection = window.getSelection();
+      const text = selection?.toString().trim();
+      if (!text || text.length < 2) { setPopupPos(null); return; }
+      const range = selection.getRangeAt(0);
+      if (!chapterBodyRef.current?.contains(range.commonAncestorContainer)) return;
+      const rect = range.getBoundingClientRect();
+      setPopupPos({ x: rect.left + rect.width / 2, y: rect.top - 44 });
+      setPendingText(text);
+    };
+
+    const onTouchEnd = () => {
+      lastTouchTime.current = Date.now();
+      setTimeout(() => {
+        const selection = window.getSelection();
+        const text = selection?.toString().trim();
+        if (!text || text.length < 2) { setPopupPos(null); return; }
+        const range = selection.getRangeAt(0);
+        if (!chapterBodyRef.current?.contains(range.commonAncestorContainer)) return;
+        const rect = range.getBoundingClientRect();
+        setPopupPos({ x: rect.left + rect.width / 2, y: rect.bottom + 12 });
+        setPendingText(text);
+      }, 100);
+    };
+
+    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('touchend', onTouchEnd);
+    return () => {
+      document.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener('touchend', onTouchEnd);
+    };
   }, []);
 
   const handleHighlightSave = useCallback(() => {
@@ -802,8 +831,6 @@ function Chapter() {
             ref={chapterBodyRef}
             className={`chapter-body font-${fontFamily}${sepiaMode ? ' sepia' : ''}`}
             style={{ fontSize: `${fontSize}px` }}
-            onMouseUp={handleMouseUp}
-            onTouchEnd={handleMouseUp}
           >
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}

@@ -1049,7 +1049,7 @@ mark.chapter-highlight:hover::after {
 
 /* ── Highlight Popup ── */
 .highlight-popup {
-  position: absolute;
+  position: fixed;
   transform: translateX(-50%);
   display: flex;
   gap: 4px;
