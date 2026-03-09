@@ -803,6 +803,7 @@ function Chapter() {
             className={`chapter-body font-${fontFamily}${sepiaMode ? ' sepia' : ''}`}
             style={{ fontSize: `${fontSize}px` }}
             onMouseUp={handleMouseUp}
+            onTouchEnd={handleMouseUp}
           >
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
@@ -818,6 +819,7 @@ function Chapter() {
               className="highlight-popup"
               style={{ left: popupPos.x, top: popupPos.y }}
               onMouseDown={(e) => e.preventDefault()}
+            onTouchStart={(e) => e.stopPropagation()}
             >
               <button className="highlight-popup-btn" onClick={handleHighlightSave}>
                 형광펜
