@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { FiBookOpen, FiEye, FiAward, FiEdit3, FiBook, FiGithub, FiLinkedin, FiMail, FiMessageSquare, FiMessageCircle } from 'react-icons/fi';
+import { useEffect, useState } from 'react';
+import { FiBookOpen, FiEye, FiAward, FiEdit3, FiBook, FiGithub, FiLinkedin, FiMail, FiMessageSquare, FiMessageCircle, FiClock } from 'react-icons/fi';
 import { useDashboardStats } from '../../context/DashboardContext';
+import { fetchDevPostList } from '../../api/github';
 import defaultCover from '../../assets/images/default/default.png';
 import './Dashboard.css';
 
@@ -14,6 +16,11 @@ const fade = (delay = 0) => ({
 
 function Dashboard() {
   const { stats, loading } = useDashboardStats();
+  const [recentPosts, setRecentPosts] = useState([]);
+
+  useEffect(() => {
+    fetchDevPostList().then((posts) => setRecentPosts(posts.slice(0, 3)));
+  }, []);
 
   const v = stats?.visitors || { today: 0, yesterday: 0, total: 0 };
   const topPosts = stats?.topPosts || [];
@@ -186,6 +193,37 @@ function Dashboard() {
                     ))}
                   </div>
                 )}
+              </motion.section>
+            )}
+
+            {/* 최신 글 Section */}
+            {recentPosts.length > 0 && (
+              <motion.section {...fade(0.09)}>
+                <div className="section-head">
+                  <h2 className="section-title">
+                    <FiClock size={15} />
+                    최신 글
+                  </h2>
+                  <Link to="/posts" className="section-more">더보기 →</Link>
+                </div>
+                <div className="recent-post-list">
+                  {recentPosts.map((post) => (
+                    <Link
+                      key={`${post.category}/${post.slug}`}
+                      to={`/post/${post.category}/${post.slug}`}
+                      className="recent-post-item"
+                    >
+                      <div className="recent-post-thumb">
+                        <img src={post.cover || defaultCover} alt={post.title} loading="lazy" />
+                      </div>
+                      <div className="recent-post-body">
+                        <span className="recent-post-category">{post.category}</span>
+                        <span className="recent-post-title">{post.title}</span>
+                        {post.date && <span className="recent-post-date">{post.date}</span>}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               </motion.section>
             )}
 
