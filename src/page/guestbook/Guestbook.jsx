@@ -55,7 +55,7 @@ function Guestbook() {
             reactionsEnabled="0"
             emitMetadata="0"
             inputPosition="bottom"
-            theme={`https://chanhan.blog/giscus-${giscusTheme}.css?v=4`}
+            theme={`https://chanhan.blog/giscus-${giscusTheme}.css?v=5`}
             lang="ko"
           />
         </section>

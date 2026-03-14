@@ -120,3 +120,38 @@ a[href*="giscus.app"] {
 .gsc-comment-box {
   max-width: 100% !important;
 }
+
+/* ── 댓글 카드 스타일 ── */
+.gsc-comment {
+  background: #ffffff !important;
+  border: 1px solid #e2d9d0 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+  overflow: hidden !important;
+  margin-bottom: 12px !important;
+}
+
+.gsc-comment-content {
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.gsc-comment-header {
+  background: #f7f3ef !important;
+  border-bottom: 1px solid #e2d9d0 !important;
+  padding: 10px 14px !important;
+}
+
+/* 답글 카드 */
+.gsc-reply {
+  background: #faf8f6 !important;
+  border: 1px solid #e2d9d0 !important;
+  border-radius: 8px !important;
+  margin-top: 8px !important;
+  overflow: hidden !important;
+}
+
+.gsc-reply .gsc-comment-header {
+  background: #f0ece8 !important;
+  border-bottom: 1px solid #e2d9d0 !important;
+}
