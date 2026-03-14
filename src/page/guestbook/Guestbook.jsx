@@ -40,7 +40,7 @@ function Guestbook() {
         <div className="guestbook-intro">
           <h1 className="guestbook-title">방명록</h1>
           <p className="guestbook-desc">
-            자유롭게 글을 남겨주세요 👋
+            반갑습니다. 자유롭게 글을 남겨주세요 👋
           </p>
         </div>
 
