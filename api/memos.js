@@ -116,11 +116,16 @@ export default async function handler(req, res) {
     // ── Parse body ───────────────────────────────────────
     let body = {};
     if (req.method !== 'GET') {
-      await new Promise((resolve, reject) => {
-        let raw = '';
-        req.on('data', (c) => { raw += c; });
-        req.on('end', () => { try { body = JSON.parse(raw); resolve(); } catch { reject(new Error('Invalid JSON')); } });
-      });
+      if (req.body) {
+        // Vercel auto-parses JSON body
+        body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+      } else {
+        await new Promise((resolve, reject) => {
+          let raw = '';
+          req.on('data', (c) => { raw += c; });
+          req.on('end', () => { try { body = JSON.parse(raw); resolve(); } catch { reject(new Error('Invalid JSON')); } });
+        });
+      }
     }
 
     // ── POST ─────────────────────────────────────────────
