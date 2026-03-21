@@ -1091,3 +1091,106 @@ mark.chapter-highlight:hover::after {
 .highlight-popup-cancel:hover {
   color: var(--text-primary);
 }
+
+/* ── 메모 아이콘 ── */
+.memo-icon {
+  cursor: pointer;
+  font-size: 0.85em;
+  margin-left: 2px;
+  opacity: 0.75;
+  transition: opacity 0.15s, transform 0.15s;
+  vertical-align: middle;
+  user-select: none;
+}
+.memo-icon:hover { opacity: 1; transform: scale(1.2); }
+
+/* ── 메모 팝업 버튼 ── */
+.memo-btn {
+  background: rgba(100, 180, 255, 0.85) !important;
+  color: #1a1613 !important;
+}
+
+/* ── 메모 textarea ── */
+.memo-textarea {
+  width: 220px;
+  min-height: 72px;
+  resize: vertical;
+  font-size: 0.82rem;
+  padding: 6px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+.memo-popup-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  justify-content: flex-end;
+}
+
+/* ── 말풍선 ── */
+.memo-bubble {
+  position: fixed;
+  z-index: 400;
+  width: 300px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  padding: 12px 14px;
+}
+.memo-bubble-text {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.memo-bubble-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.memo-bubble-edit {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.memo-bubble-edit:hover { background: var(--bg-tertiary); }
+.memo-bubble-delete {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border: 1px solid #fca5a5;
+  border-radius: 4px;
+  background: transparent;
+  color: #ef4444;
+  cursor: pointer;
+}
+.memo-bubble-delete:hover { background: #fee2e2; }
+.memo-bubble-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+/* ── 반응형 ── */
+@media (max-width: 768px) {
+  .memo-textarea { width: 90vw; max-width: 320px; }
+  .memo-bubble { width: 280px; }
+}
+@media (max-width: 480px) {
+  .memo-bubble { width: calc(100vw - 24px); }
+}

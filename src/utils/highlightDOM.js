@@ -1,4 +1,4 @@
-function getTextNodes(container) {
+export function getTextNodes(container) {
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
   const nodes = [];
   let node;

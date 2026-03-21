@@ -14,6 +14,9 @@ import { fetchViewCount } from '../../api/goatcounter';
 import ImageModal from '../../components/ImageModal';
 import { useHighlight } from '../../hooks/useHighlight';
 import { applyHighlightsToDOM } from '../../utils/highlightDOM';
+import { useChapterMemo } from '../../hooks/useChapterMemo';
+import { applyMemosToDOM } from '../../utils/memoDOM';
+import { useAuth } from '../../context/AuthContext';
 import './Chapter.css';
 
 function extractHeadings(content) {
@@ -106,6 +109,13 @@ function Chapter() {
   const [pendingText, setPendingText] = useState('');
   const chapterBodyRef = useRef(null);
   const { highlights, addHighlight, removeHighlight } = useHighlight(bookSlug, chapterPath);
+  const { authenticated, getToken } = useAuth();
+  const { memos, fetchMemos, addMemo, editMemo, deleteMemo } = useChapterMemo(bookSlug, chapterPath);
+  const [memoMode, setMemoMode] = useState(false);
+  const [memoNote, setMemoNote] = useState('');
+  const [activeMemo, setActiveMemo] = useState(null);
+  const [bubblePos, setBubblePos] = useState(null);
+  const [editingMemo, setEditingMemo] = useState(null);
 
   const SITE_URL = 'https://chanhan.blog';
 
@@ -198,11 +208,20 @@ function Chapter() {
       }, 100);
     };
 
+    const onClickOutside = (e) => {
+      if (!e.target.closest('.memo-bubble') && !e.target.closest('.memo-icon')) {
+        setActiveMemo(null);
+        setBubblePos(null);
+      }
+    };
+
     document.addEventListener('mouseup', onMouseUp);
     document.addEventListener('touchend', onTouchEnd);
+    document.addEventListener('mousedown', onClickOutside);
     return () => {
       document.removeEventListener('mouseup', onMouseUp);
       document.removeEventListener('touchend', onTouchEnd);
+      document.removeEventListener('mousedown', onClickOutside);
     };
   }, []);
 
@@ -219,11 +238,19 @@ function Chapter() {
     setPendingText('');
   }, []);
 
+  const handleMemoIconClick = useCallback((memo, iconEl) => {
+    const rect = iconEl.getBoundingClientRect();
+    setBubblePos({ x: rect.left + rect.width / 2, y: rect.bottom + 8 });
+    setActiveMemo(memo);
+    setEditingMemo(null);
+  }, []);
+
   useEffect(() => {
     const container = chapterBodyRef.current;
     if (!container || !currentChapter?.content) return;
     applyHighlightsToDOM(container, highlights, removeHighlight);
-  }, [highlights, currentChapter?.content, removeHighlight]);
+    applyMemosToDOM(container, memos, handleMemoIconClick);
+  }, [highlights, memos, currentChapter?.content, removeHighlight, handleMemoIconClick]);
 
   const downloadPdf = async () => {
     setSettingsOpen(false);
@@ -565,9 +592,10 @@ function Chapter() {
     if (chapterPath) {
       loadChapter(bookSlug, chapterPath);
       fetchViewCount(`/book/${bookSlug}/read/${chapterPath}`).then(setViewCount);
+      fetchMemos();
     }
     return () => clearChapter();
-  }, [bookSlug, chapterPath, loadChapter, clearChapter]);
+  }, [bookSlug, chapterPath, loadChapter, clearChapter, fetchMemos]);
 
   // 저장된 읽기 위치로 스크롤 복원
   useEffect(() => {
@@ -846,14 +874,83 @@ function Chapter() {
               className="highlight-popup"
               style={{ left: popupPos.x, top: popupPos.y }}
               onMouseDown={(e) => e.preventDefault()}
-            onTouchStart={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
             >
-              <button className="highlight-popup-btn" onClick={handleHighlightSave}>
-                형광펜
-              </button>
-              <button className="highlight-popup-cancel" onClick={handlePopupClose}>
-                ✕
-              </button>
+              {!memoMode ? (
+                <>
+                  <button className="highlight-popup-btn" onClick={handleHighlightSave}>형광펜</button>
+                  <button className="highlight-popup-btn memo-btn" onClick={() => setMemoMode(true)}>메모</button>
+                  <button className="highlight-popup-cancel" onClick={() => { handlePopupClose(); setMemoMode(false); }}>✕</button>
+                </>
+              ) : (
+                <>
+                  <textarea
+                    className="memo-textarea"
+                    placeholder="메모를 입력하세요..."
+                    value={memoNote}
+                    onChange={(e) => setMemoNote(e.target.value)}
+                    autoFocus
+                    rows={3}
+                  />
+                  <div className="memo-popup-actions">
+                    <button
+                      className="highlight-popup-btn"
+                      onClick={async () => {
+                        if (!memoNote.trim()) return;
+                        const normalizedText = pendingText.replace(/\s+/g, ' ').trim();
+                        const occurrence = memos.filter((m) => m.selectedText === normalizedText).length;
+                        await addMemo(normalizedText, memoNote.trim(), occurrence, getToken());
+                        setMemoNote('');
+                        setMemoMode(false);
+                        handlePopupClose();
+                      }}
+                    >
+                      저장
+                    </button>
+                    <button className="highlight-popup-cancel" onClick={() => { setMemoMode(false); setMemoNote(''); }}>취소</button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {activeMemo && bubblePos && (
+            <div
+              className="memo-bubble"
+              style={{ left: Math.max(10, Math.min(bubblePos.x - 150, window.innerWidth - 320)), top: bubblePos.y }}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              {editingMemo === activeMemo.id ? (
+                <>
+                  <textarea
+                    className="memo-textarea"
+                    value={memoNote}
+                    onChange={(e) => setMemoNote(e.target.value)}
+                    rows={3}
+                  />
+                  <div className="memo-popup-actions">
+                    <button className="highlight-popup-btn" onClick={async () => {
+                      await editMemo(activeMemo.id, memoNote.trim(), getToken());
+                      setActiveMemo(null); setBubblePos(null); setEditingMemo(null); setMemoNote('');
+                    }}>저장</button>
+                    <button className="highlight-popup-cancel" onClick={() => { setEditingMemo(null); setMemoNote(''); }}>취소</button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="memo-bubble-text">{activeMemo.note}</p>
+                  {authenticated && (
+                    <div className="memo-bubble-actions">
+                      <button className="memo-bubble-edit" onClick={() => { setEditingMemo(activeMemo.id); setMemoNote(activeMemo.note); }}>수정</button>
+                      <button className="memo-bubble-delete" onClick={async () => {
+                        await deleteMemo(activeMemo.id, getToken());
+                        setActiveMemo(null); setBubblePos(null);
+                      }}>삭제</button>
+                    </div>
+                  )}
+                  <button className="memo-bubble-close" onClick={() => { setActiveMemo(null); setBubblePos(null); }}>✕</button>
+                </>
+              )}
             </div>
           )}
         </article>
