@@ -46,7 +46,7 @@ function buildCommentBody(selectedText, note, occurrence) {
 async function findOrCreateIssue(bookSlug, chapterPath) {
   const title = issueTitle(bookSlug, chapterPath);
   const searchRes = await fetch(
-    `${GH}/repos/${OWNER}/${REPO}/issues?state=open&labels=memo&per_page=100`,
+    `${GH}/repos/${OWNER}/${REPO}/issues?state=open&per_page=100`,
     { headers: headers() }
   );
   if (!searchRes.ok) throw new Error('GitHub issue search failed');
@@ -57,7 +57,7 @@ async function findOrCreateIssue(bookSlug, chapterPath) {
   const createRes = await fetch(`${GH}/repos/${OWNER}/${REPO}/issues`, {
     method: 'POST',
     headers: headers(),
-    body: JSON.stringify({ title, labels: ['memo'], body: `Memos for ${bookSlug}/${chapterPath}` }),
+    body: JSON.stringify({ title, body: `Memos for ${bookSlug}/${chapterPath}` }),
   });
   if (!createRes.ok) throw new Error('GitHub issue create failed');
   const issue = await createRes.json();
@@ -85,7 +85,7 @@ export default async function handler(req, res) {
 
       const title = issueTitle(book, chapter);
       const searchRes = await fetch(
-        `${GH}/repos/${OWNER}/${REPO}/issues?state=open&labels=memo&per_page=100`,
+        `${GH}/repos/${OWNER}/${REPO}/issues?state=open&per_page=100`,
         { headers: headers() }
       );
       if (!searchRes.ok) throw new Error('GitHub search failed');
