@@ -172,6 +172,7 @@ function Chapter() {
   };
 
   const lastTouchTimeRef = useRef(0);
+  const memoModeRef = useRef(false);
 
   const handlePopupDismiss = useCallback((e) => {
     if (e.target.closest('.highlight-popup')) return;
@@ -180,10 +181,15 @@ function Chapter() {
   }, []);
 
   useEffect(() => {
+    memoModeRef.current = memoMode;
+  }, [memoMode]);
+
+  useEffect(() => {
     const lastTouchTime = lastTouchTimeRef;
 
     const onMouseUp = () => {
       if (Date.now() - lastTouchTime.current < 600) return;
+      if (memoModeRef.current) return; // 메모 입력 중엔 팝업 닫지 않음
       const selection = window.getSelection();
       const text = selection?.toString().trim();
       if (!text || text.length < 2) { setPopupPos(null); return; }
@@ -197,6 +203,7 @@ function Chapter() {
     const onTouchEnd = () => {
       lastTouchTime.current = Date.now();
       setTimeout(() => {
+        if (memoModeRef.current) return; // 메모 입력 중엔 팝업 닫지 않음
         const selection = window.getSelection();
         const text = selection?.toString().trim();
         if (!text || text.length < 2) { setPopupPos(null); return; }
