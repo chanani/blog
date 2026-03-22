@@ -41,7 +41,7 @@ const BOOKS_PATH = import.meta.env.VITE_GITHUB_PATH || 'books';
 function CodeBlock({ language, children }) {
   const [copied, setCopied] = useState(false);
   const theme = document.documentElement.getAttribute('data-theme') || 'light';
-  const code = String(children).replace(/\n$/, '');
+  const code = String(children).replace(/^\n/, '').replace(/\n$/, '');
 
   const handleCopy = async () => {
     try {

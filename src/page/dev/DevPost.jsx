@@ -36,7 +36,7 @@ const GITHUB_RAW = `https://raw.githubusercontent.com/${import.meta.env.VITE_GIT
 function CodeBlock({ language, children }) {
   const [copied, setCopied] = useState(false);
   const theme = document.documentElement.getAttribute('data-theme') || 'light';
-  const code = String(children).replace(/\n$/, '');
+  const code = String(children).replace(/^\n/, '').replace(/\n$/, '');
 
   const handleCopy = async () => {
     try {
