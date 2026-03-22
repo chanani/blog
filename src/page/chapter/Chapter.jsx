@@ -512,11 +512,11 @@ function Chapter() {
       );
     },
     pre({ node }) {
-      const codeNode = node.children?.[0];
+      const codeNode = node.children?.find((c) => c.tagName === 'code') ?? node.children?.[0];
       if (codeNode?.tagName === 'code') {
         const cls = codeNode.properties?.className?.[0] || '';
         const match = /language-(\w+)/.exec(cls);
-        const text = codeNode.children?.map((c) => c.value).join('') || '';
+        const text = (codeNode.children?.map((c) => c.value ?? '').join('') || '').trimStart().replace(/\n+$/, '');
         return <CodeBlock language={match?.[1] || 'text'}>{text}</CodeBlock>;
       }
       return <pre>{node.children}</pre>;
