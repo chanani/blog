@@ -658,7 +658,8 @@
   border-radius: var(--radius-sm) !important;
 }
 
-.chapter-body pre code {
+.chapter-body pre code,
+.code-block-wrapper code {
   padding: 0;
   background: none;
 }
