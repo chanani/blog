@@ -31,37 +31,43 @@ function findNthMatch(fullText, text, occurrence) {
   return null;
 }
 
-function insertIconAfterText(nodePositions, idx, end, memo, onMemoClick) {
+function wrapTextWithHighlight(nodePositions, matchStart, matchEnd, memo, onMemoClick) {
   const affected = nodePositions.filter(
-    ({ node, start }) => start < end && start + node.textContent.length > idx
+    ({ node, start }) => start < matchEnd && start + node.textContent.length > matchStart
   );
   if (!affected.length) return;
 
-  const last = affected[affected.length - 1];
-  const { node, start: nodeStart } = last;
-  const hlEnd = Math.min(node.textContent.length, end - nodeStart);
+  for (const { node, start: nodeStart } of affected) {
+    const hlStart = Math.max(0, matchStart - nodeStart);
+    const hlEnd = Math.min(node.textContent.length, matchEnd - nodeStart);
+    const highlighted = node.textContent.slice(hlStart, hlEnd);
+    if (!highlighted) continue;
 
-  const after = node.textContent.slice(hlEnd);
-  const before = node.textContent.slice(0, hlEnd);
+    const before = node.textContent.slice(0, hlStart);
+    const after = node.textContent.slice(hlEnd);
 
-  const icon = document.createElement('span');
-  icon.className = 'memo-icon';
-  icon.dataset.mid = memo.id;
-  icon.textContent = '📝';
-  icon.title = memo.note;
-  icon.addEventListener('click', (e) => {
-    e.stopPropagation();
-    onMemoClick(memo, icon);
-  });
+    const mark = document.createElement('mark');
+    mark.className = 'memo-highlight';
+    mark.dataset.mid = memo.id;
+    mark.textContent = highlighted;
+    mark.title = memo.note;
+    mark.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onMemoClick(memo, mark);
+    });
 
-  const parent = node.parentNode;
-  if (before) parent.insertBefore(document.createTextNode(before), node);
-  parent.insertBefore(icon, node);
-  if (after) parent.insertBefore(document.createTextNode(after), node);
-  parent.removeChild(node);
+    const parent = node.parentNode;
+    if (before) parent.insertBefore(document.createTextNode(before), node);
+    parent.insertBefore(mark, node);
+    if (after) parent.insertBefore(document.createTextNode(after), node);
+    parent.removeChild(node);
+  }
 }
 
 export function clearMemos(container) {
+  container.querySelectorAll('mark.memo-highlight').forEach((mark) => {
+    mark.replaceWith(document.createTextNode(mark.textContent));
+  });
   container.querySelectorAll('span[data-mid]').forEach((span) => span.remove());
   container.normalize();
 }
@@ -79,6 +85,6 @@ export function applyMemosToDOM(container, memos, onMemoClick) {
     const match = findNthMatch(fullText, memo.selectedText, memo.occurrence ?? 0);
     if (!match) continue;
 
-    insertIconAfterText(nodePositions, match.index, match.index + match[0].length, memo, onMemoClick);
+    wrapTextWithHighlight(nodePositions, match.index, match.index + match[0].length, memo, onMemoClick);
   }
 }

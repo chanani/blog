@@ -45,32 +45,62 @@ function buildCommentBody(selectedText, note, occurrence) {
 
 async function findOrCreateIssue(bookSlug, chapterPath) {
   const title = issueTitle(bookSlug, chapterPath);
-  const searchRes = await fetch(
-    `${GH}/repos/${OWNER}/${REPO}/issues?state=open&per_page=100`,
-    { headers: headers() }
+  const searchRes = await ghFetch(
+    `${GH}/repos/${OWNER}/${REPO}/issues?state=open&per_page=100`
   );
-  if (!searchRes.ok) throw new Error('GitHub issue search failed');
   const issues = await searchRes.json();
   const found = issues.find((i) => i.title === title);
   if (found) return found.number;
 
-  const createRes = await fetch(`${GH}/repos/${OWNER}/${REPO}/issues`, {
+  const createRes = await ghFetch(`${GH}/repos/${OWNER}/${REPO}/issues`, {
     method: 'POST',
-    headers: headers(),
     body: JSON.stringify({ title, body: `Memos for ${bookSlug}/${chapterPath}` }),
   });
-  if (!createRes.ok) throw new Error('GitHub issue create failed');
   const issue = await createRes.json();
   return issue.number;
+}
+
+async function parseBody(req) {
+  if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+    return req.body;
+  }
+  if (typeof req.body === 'string' && req.body.length > 0) {
+    return JSON.parse(req.body);
+  }
+  return new Promise((resolve, reject) => {
+    let raw = '';
+    req.on('data', (c) => { raw += c; });
+    req.on('end', () => {
+      if (!raw) { resolve({}); return; }
+      try { resolve(JSON.parse(raw)); } catch { reject(new Error('Invalid JSON body')); }
+    });
+    req.on('error', reject);
+  });
+}
+
+async function ghFetch(url, options = {}) {
+  const res = await fetch(url, { ...options, headers: headers(options.headers) });
+  if (!res.ok) {
+    let detail = '';
+    try { const d = await res.json(); detail = d.message || JSON.stringify(d); } catch {}
+    throw new Error(`GitHub API ${res.status}: ${detail || res.statusText} [${url}]`);
+  }
+  return res;
 }
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,x-admin-password');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204); res.end(); return;
+  }
+
+  if (!TOKEN || !OWNER || !REPO) {
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Server misconfiguration: GitHub env vars missing' }));
+    return;
   }
 
   try {
@@ -84,52 +114,34 @@ export default async function handler(req, res) {
       }
 
       const title = issueTitle(book, chapter);
-      const searchRes = await fetch(
-        `${GH}/repos/${OWNER}/${REPO}/issues?state=open&per_page=100`,
-        { headers: headers() }
+      const searchRes = await ghFetch(
+        `${GH}/repos/${OWNER}/${REPO}/issues?state=open&per_page=100`
       );
-      if (!searchRes.ok) throw new Error('GitHub search failed');
       const issues = await searchRes.json();
       const issue = issues.find((i) => i.title === title);
 
       if (!issue) {
-        res.setHeader('Cache-Control', 'public, s-maxage=60');
+        res.setHeader('Cache-Control', 'no-store');
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify([]));
         return;
       }
 
-      const commentsRes = await fetch(
-        `${GH}/repos/${OWNER}/${REPO}/issues/${issue.number}/comments?per_page=100`,
-        { headers: headers() }
+      const commentsRes = await ghFetch(
+        `${GH}/repos/${OWNER}/${REPO}/issues/${issue.number}/comments?per_page=100`
       );
-      if (!commentsRes.ok) throw new Error('GitHub comments fetch failed');
       const comments = await commentsRes.json();
       const memos = comments.map(parseMemoComment).filter(Boolean);
 
-      res.setHeader('Cache-Control', 'public, s-maxage=60');
+      res.setHeader('Cache-Control', 'no-store');
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(memos));
       return;
     }
 
-    // ── Parse body ───────────────────────────────────────
-    let body = {};
-    if (req.method !== 'GET') {
-      if (req.body) {
-        // Vercel auto-parses JSON body
-        body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-      } else {
-        await new Promise((resolve, reject) => {
-          let raw = '';
-          req.on('data', (c) => { raw += c; });
-          req.on('end', () => { try { body = JSON.parse(raw); resolve(); } catch { reject(new Error('Invalid JSON')); } });
-        });
-      }
-    }
-
     // ── POST ─────────────────────────────────────────────
     if (req.method === 'POST') {
+      const body = await parseBody(req);
       const { bookSlug, chapterPath, selectedText, note, occurrence, adminPassword } = body;
       if (adminPassword !== ADMIN_PASSWORD) {
         res.writeHead(401, { 'Content-Type': 'application/json' });
@@ -140,11 +152,10 @@ export default async function handler(req, res) {
       const issueNumber = await findOrCreateIssue(bookSlug, chapterPath);
       const commentBody = buildCommentBody(selectedText, note, occurrence ?? 0);
 
-      const commentRes = await fetch(
+      const commentRes = await ghFetch(
         `${GH}/repos/${OWNER}/${REPO}/issues/${issueNumber}/comments`,
-        { method: 'POST', headers: headers(), body: JSON.stringify({ body: commentBody }) }
+        { method: 'POST', body: JSON.stringify({ body: commentBody }) }
       );
-      if (!commentRes.ok) throw new Error('GitHub comment create failed');
       const comment = await commentRes.json();
       const memo = parseMemoComment(comment);
 
@@ -155,6 +166,7 @@ export default async function handler(req, res) {
 
     // ── PATCH ─────────────────────────────────────────────
     if (req.method === 'PATCH') {
+      const body = await parseBody(req);
       const { commentId, note, adminPassword } = body;
       if (adminPassword !== ADMIN_PASSWORD) {
         res.writeHead(401, { 'Content-Type': 'application/json' });
@@ -162,21 +174,18 @@ export default async function handler(req, res) {
         return;
       }
 
-      const getRes = await fetch(
-        `${GH}/repos/${OWNER}/${REPO}/issues/comments/${commentId}`,
-        { headers: headers() }
+      const getRes = await ghFetch(
+        `${GH}/repos/${OWNER}/${REPO}/issues/comments/${commentId}`
       );
-      if (!getRes.ok) throw new Error('Comment not found');
       const existing = await getRes.json();
       const parsed = parseMemoComment(existing);
       if (!parsed) throw new Error('Invalid memo comment format');
 
       const newBody = buildCommentBody(parsed.selectedText, note, parsed.occurrence);
-      const patchRes = await fetch(
+      const patchRes = await ghFetch(
         `${GH}/repos/${OWNER}/${REPO}/issues/comments/${commentId}`,
-        { method: 'PATCH', headers: headers(), body: JSON.stringify({ body: newBody }) }
+        { method: 'PATCH', body: JSON.stringify({ body: newBody }) }
       );
-      if (!patchRes.ok) throw new Error('GitHub comment update failed');
       const updated = await patchRes.json();
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -185,19 +194,25 @@ export default async function handler(req, res) {
     }
 
     // ── DELETE ────────────────────────────────────────────
+    // commentId는 URL query param으로, adminPassword는 x-admin-password 헤더로 수신
     if (req.method === 'DELETE') {
-      const { commentId, adminPassword } = body;
+      const commentId = req.query.commentId;
+      const adminPassword = req.headers['x-admin-password'];
       if (adminPassword !== ADMIN_PASSWORD) {
         res.writeHead(401, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Unauthorized' }));
         return;
       }
+      if (!commentId) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'commentId required' }));
+        return;
+      }
 
-      const delRes = await fetch(
+      await ghFetch(
         `${GH}/repos/${OWNER}/${REPO}/issues/comments/${commentId}`,
-        { method: 'DELETE', headers: headers() }
+        { method: 'DELETE' }
       );
-      if (!delRes.ok) throw new Error('GitHub comment delete failed');
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ success: true }));

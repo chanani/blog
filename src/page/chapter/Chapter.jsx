@@ -216,7 +216,12 @@ function Chapter() {
     };
 
     const onClickOutside = (e) => {
-      if (!e.target.closest('.memo-bubble') && !e.target.closest('.memo-icon')) {
+      if (
+        !e.target.closest('.memo-bubble') &&
+        !e.target.closest('.memo-icon') &&
+        !e.target.closest('.memo-highlight') &&
+        !e.target.closest('.memo-sidebar-item')
+      ) {
         setActiveMemo(null);
         setBubblePos(null);
       }
@@ -692,6 +697,35 @@ function Chapter() {
         </div>
       )}
 
+      {memos.length > 0 && (
+        <aside className="memo-sidebar">
+          <div className="memo-sidebar-header">
+            <span className="memo-sidebar-title">메모</span>
+          </div>
+          <div className="memo-sidebar-list">
+            {memos.map((memo) => (
+              <button
+                key={memo.id}
+                className={`memo-sidebar-item${activeMemo?.id === memo.id ? ' active' : ''}`}
+                onClick={() => {
+                  const el = chapterBodyRef.current?.querySelector(`mark[data-mid="${memo.id}"]`);
+                  if (el) {
+                    const rect = el.getBoundingClientRect();
+                    window.scrollTo({ top: rect.top + window.scrollY - 100, behavior: 'smooth' });
+                    setBubblePos({ x: rect.left + rect.width / 2, y: rect.bottom + 8 });
+                    setActiveMemo(memo);
+                    setEditingMemo(null);
+                  }
+                }}
+              >
+                <span className="memo-sidebar-quote">{memo.selectedText}</span>
+                <span className="memo-sidebar-note">{memo.note}</span>
+              </button>
+            ))}
+          </div>
+        </aside>
+      )}
+
       {headings.length > 0 && (
         <>
           <aside className={`toc-sidebar${tocOpen ? ' open' : ''}`}>
@@ -904,12 +938,16 @@ function Chapter() {
                       className="highlight-popup-btn"
                       onClick={async () => {
                         if (!memoNote.trim()) return;
-                        const normalizedText = pendingText.replace(/\s+/g, ' ').trim();
-                        const occurrence = memos.filter((m) => m.selectedText === normalizedText).length;
-                        await addMemo(normalizedText, memoNote.trim(), occurrence, getToken());
-                        setMemoNote('');
-                        setMemoMode(false);
-                        handlePopupClose();
+                        try {
+                          const normalizedText = pendingText.replace(/\s+/g, ' ').trim();
+                          const occurrence = memos.filter((m) => m.selectedText === normalizedText).length;
+                          await addMemo(normalizedText, memoNote.trim(), occurrence, getToken());
+                          setMemoNote('');
+                          setMemoMode(false);
+                          handlePopupClose();
+                        } catch (err) {
+                          alert(`메모 저장 실패: ${err.message}`);
+                        }
                       }}
                     >
                       저장
@@ -937,8 +975,12 @@ function Chapter() {
                   />
                   <div className="memo-popup-actions">
                     <button className="highlight-popup-btn" onClick={async () => {
-                      await editMemo(activeMemo.id, memoNote.trim(), getToken());
-                      setActiveMemo(null); setBubblePos(null); setEditingMemo(null); setMemoNote('');
+                      try {
+                        await editMemo(activeMemo.id, memoNote.trim(), getToken());
+                        setActiveMemo(null); setBubblePos(null); setEditingMemo(null); setMemoNote('');
+                      } catch (err) {
+                        alert(`메모 수정 실패: ${err.message}`);
+                      }
                     }}>저장</button>
                     <button className="highlight-popup-cancel" onClick={() => { setEditingMemo(null); setMemoNote(''); }}>취소</button>
                   </div>
@@ -950,8 +992,12 @@ function Chapter() {
                     <div className="memo-bubble-actions">
                       <button className="memo-bubble-edit" onClick={() => { setEditingMemo(activeMemo.id); setMemoNote(activeMemo.note); }}>수정</button>
                       <button className="memo-bubble-delete" onClick={async () => {
-                        await deleteMemo(activeMemo.id, getToken());
-                        setActiveMemo(null); setBubblePos(null);
+                        try {
+                          await deleteMemo(activeMemo.id, getToken());
+                          setActiveMemo(null); setBubblePos(null);
+                        } catch (err) {
+                          alert(`메모 삭제 실패: ${err.message}`);
+                        }
                       }}>삭제</button>
                     </div>
                   )}

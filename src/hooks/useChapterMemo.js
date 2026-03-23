@@ -48,10 +48,12 @@ export function useChapterMemo(bookSlug, chapterPath) {
   }, []);
 
   const deleteMemo = useCallback(async (commentId, adminPassword) => {
-    const res = await fetch('/api/memos', {
+    const res = await fetch(`/api/memos?commentId=${encodeURIComponent(commentId)}`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ commentId, adminPassword }),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-password': adminPassword,
+      },
     });
     if (!res.ok) throw new Error('Failed to delete memo');
     setMemos((prev) => prev.filter((m) => m.id !== commentId));
