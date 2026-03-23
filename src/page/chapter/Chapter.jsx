@@ -116,6 +116,7 @@ function Chapter() {
   const [activeMemo, setActiveMemo] = useState(null);
   const [bubblePos, setBubblePos] = useState(null);
   const [editingMemo, setEditingMemo] = useState(null);
+  const [memoAnnotationPositions, setMemoAnnotationPositions] = useState({});
 
   const SITE_URL = 'https://chanhan.blog';
 
@@ -220,7 +221,7 @@ function Chapter() {
         !e.target.closest('.memo-bubble') &&
         !e.target.closest('.memo-icon') &&
         !e.target.closest('.memo-highlight') &&
-        !e.target.closest('.memo-sidebar-item')
+        !e.target.closest('.memo-annotation')
       ) {
         setActiveMemo(null);
         setBubblePos(null);
@@ -257,12 +258,24 @@ function Chapter() {
     setEditingMemo(null);
   }, []);
 
+  const updateMemoPositions = useCallback(() => {
+    const container = chapterBodyRef.current;
+    if (!container) return;
+    const positions = {};
+    memos.forEach((memo) => {
+      const el = container.querySelector(`mark[data-mid="${memo.id}"]`);
+      if (el) positions[memo.id] = el.getBoundingClientRect().top;
+    });
+    setMemoAnnotationPositions(positions);
+  }, [memos]);
+
   useEffect(() => {
     const container = chapterBodyRef.current;
     if (!container || !currentChapter?.content) return;
     applyHighlightsToDOM(container, highlights, removeHighlight);
     applyMemosToDOM(container, memos, handleMemoIconClick);
-  }, [highlights, memos, currentChapter?.content, removeHighlight, handleMemoIconClick]);
+    requestAnimationFrame(updateMemoPositions);
+  }, [highlights, memos, currentChapter?.content, removeHighlight, handleMemoIconClick, updateMemoPositions]);
 
   const downloadPdf = async () => {
     setSettingsOpen(false);
@@ -580,10 +593,11 @@ function Chapter() {
   }, [headings]);
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    const onScroll = () => { handleScroll(); updateMemoPositions(); };
+    window.addEventListener('scroll', onScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [handleScroll, updateMemoPositions]);
 
   // 읽기 기록 저장 (진행률 변경 시)
   useEffect(() => {
@@ -697,34 +711,29 @@ function Chapter() {
         </div>
       )}
 
-      {memos.length > 0 && (
-        <aside className="memo-sidebar">
-          <div className="memo-sidebar-header">
-            <span className="memo-sidebar-title">메모</span>
+      {memos.map((memo) => {
+        const top = memoAnnotationPositions[memo.id];
+        if (top === undefined || top < 56 || top > (window.innerHeight ?? 800) - 40) return null;
+        return (
+          <div
+            key={memo.id}
+            className={`memo-annotation${activeMemo?.id === memo.id ? ' active' : ''}`}
+            style={{ top }}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              const el = chapterBodyRef.current?.querySelector(`mark[data-mid="${memo.id}"]`);
+              if (el) {
+                const rect = el.getBoundingClientRect();
+                setBubblePos({ x: rect.left + rect.width / 2, y: rect.bottom + 8 });
+                setActiveMemo(memo);
+                setEditingMemo(null);
+              }
+            }}
+          >
+            <span className="memo-annotation-note">{memo.note}</span>
           </div>
-          <div className="memo-sidebar-list">
-            {memos.map((memo) => (
-              <button
-                key={memo.id}
-                className={`memo-sidebar-item${activeMemo?.id === memo.id ? ' active' : ''}`}
-                onClick={() => {
-                  const el = chapterBodyRef.current?.querySelector(`mark[data-mid="${memo.id}"]`);
-                  if (el) {
-                    const rect = el.getBoundingClientRect();
-                    window.scrollTo({ top: rect.top + window.scrollY - 100, behavior: 'smooth' });
-                    setBubblePos({ x: rect.left + rect.width / 2, y: rect.bottom + 8 });
-                    setActiveMemo(memo);
-                    setEditingMemo(null);
-                  }
-                }}
-              >
-                <span className="memo-sidebar-quote">{memo.selectedText}</span>
-                <span className="memo-sidebar-note">{memo.note}</span>
-              </button>
-            ))}
-          </div>
-        </aside>
-      )}
+        );
+      })}
 
       {headings.length > 0 && (
         <>
