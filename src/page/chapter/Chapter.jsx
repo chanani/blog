@@ -730,6 +730,7 @@ function Chapter() {
               }
             }}
           >
+            <span className="memo-annotation-label">✏ 메모</span>
             <span className="memo-annotation-note">{memo.note}</span>
           </div>
         );
