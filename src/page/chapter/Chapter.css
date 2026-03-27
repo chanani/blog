@@ -1116,22 +1116,21 @@ mark.chapter-highlight:hover::after {
   position: fixed;
   right: calc(50% + 384px);
   width: 196px;
-  background: var(--accent-light);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-left: 3px solid rgba(100, 180, 255, 0.6);
+  border-left: 2px solid transparent;
   border-radius: var(--radius-sm);
-  padding: 5px 10px;
+  padding: 6px 10px;
   cursor: pointer;
   z-index: 50;
-  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
 .memo-annotation:hover {
-  background: var(--bg-tertiary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left-color: var(--accent-primary);
 }
 .memo-annotation.active {
-  border-left-color: rgba(100, 180, 255, 0.9);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left-color: var(--accent-primary);
+  background: var(--accent-light);
 }
 .memo-annotation-note {
   font-size: 0.78rem;
