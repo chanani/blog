@@ -970,51 +970,71 @@ function Chapter() {
           )}
 
           {activeMemo && bubblePos && (
-            <div
-              className="memo-bubble"
-              style={{ left: Math.max(10, Math.min(bubblePos.x - 150, window.innerWidth - 320)), top: bubblePos.y }}
-              onMouseDown={(e) => e.preventDefault()}
-            >
-              {editingMemo === activeMemo.id ? (
-                <>
-                  <textarea
-                    className="memo-textarea"
-                    value={memoNote}
-                    onChange={(e) => setMemoNote(e.target.value)}
-                    rows={3}
-                  />
-                  <div className="memo-popup-actions">
-                    <button className="highlight-popup-btn" onClick={async () => {
-                      try {
-                        await editMemo(activeMemo.id, memoNote.trim(), getToken());
-                        setActiveMemo(null); setBubblePos(null); setEditingMemo(null); setMemoNote('');
-                      } catch (err) {
-                        alert(`메모 수정 실패: ${err.message}`);
-                      }
-                    }}>저장</button>
-                    <button className="highlight-popup-cancel" onClick={() => { setEditingMemo(null); setMemoNote(''); }}>취소</button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="memo-bubble-text">{activeMemo.note}</p>
-                  {authenticated && (
-                    <div className="memo-bubble-actions">
-                      <button className="memo-bubble-edit" onClick={() => { setEditingMemo(activeMemo.id); setMemoNote(activeMemo.note); }}>수정</button>
-                      <button className="memo-bubble-delete" onClick={async () => {
-                        try {
-                          await deleteMemo(activeMemo.id, getToken());
-                          setActiveMemo(null); setBubblePos(null);
-                        } catch (err) {
-                          alert(`메모 삭제 실패: ${err.message}`);
-                        }
-                      }}>삭제</button>
-                    </div>
+            <>
+              <div
+                className="memo-modal-backdrop"
+                onClick={() => { setActiveMemo(null); setBubblePos(null); setEditingMemo(null); setMemoNote(''); }}
+              />
+              <div
+                className="memo-bubble"
+                style={{ left: Math.max(10, Math.min(bubblePos.x - 160, window.innerWidth - 340)), top: bubblePos.y }}
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                <div className="memo-bubble-header">
+                  <span className="memo-bubble-header-label">✏ 메모</span>
+                  <button
+                    className="memo-bubble-close"
+                    onClick={() => { setActiveMemo(null); setBubblePos(null); setEditingMemo(null); setMemoNote(''); }}
+                  >✕</button>
+                </div>
+
+                {activeMemo.selectedText && (
+                  <p className="memo-bubble-quote">"{activeMemo.selectedText}"</p>
+                )}
+
+                <div className="memo-bubble-body">
+                  {editingMemo === activeMemo.id ? (
+                    <>
+                      <textarea
+                        className="memo-textarea"
+                        value={memoNote}
+                        onChange={(e) => setMemoNote(e.target.value)}
+                        rows={4}
+                        autoFocus
+                      />
+                      <div className="memo-popup-actions">
+                        <button className="highlight-popup-btn" onClick={async () => {
+                          try {
+                            await editMemo(activeMemo.id, memoNote.trim(), getToken());
+                            setActiveMemo(null); setBubblePos(null); setEditingMemo(null); setMemoNote('');
+                          } catch (err) {
+                            alert(`메모 수정 실패: ${err.message}`);
+                          }
+                        }}>저장</button>
+                        <button className="highlight-popup-cancel" onClick={() => { setEditingMemo(null); setMemoNote(''); }}>취소</button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="memo-bubble-text">{activeMemo.note}</p>
+                      {authenticated && (
+                        <div className="memo-bubble-actions">
+                          <button className="memo-bubble-edit" onClick={() => { setEditingMemo(activeMemo.id); setMemoNote(activeMemo.note); }}>수정</button>
+                          <button className="memo-bubble-delete" onClick={async () => {
+                            try {
+                              await deleteMemo(activeMemo.id, getToken());
+                              setActiveMemo(null); setBubblePos(null);
+                            } catch (err) {
+                              alert(`메모 삭제 실패: ${err.message}`);
+                            }
+                          }}>삭제</button>
+                        </div>
+                      )}
+                    </>
                   )}
-                  <button className="memo-bubble-close" onClick={() => { setActiveMemo(null); setBubblePos(null); }}>✕</button>
-                </>
-              )}
-            </div>
+                </div>
+              </div>
+            </>
           )}
         </article>
 

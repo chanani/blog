@@ -1186,85 +1186,153 @@ mark.chapter-highlight:hover::after {
 
 /* ── 메모 textarea ── */
 .memo-textarea {
-  width: 220px;
-  min-height: 72px;
+  width: 100%;
+  min-height: 80px;
   resize: vertical;
-  font-size: 0.82rem;
-  padding: 6px 8px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  font-size: 0.85rem;
+  padding: 8px 10px;
+  border: 1px solid rgba(100, 180, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.75);
+  color: #1a3150;
   line-height: 1.5;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+}
+[data-theme='dark'] .memo-textarea {
+  background: rgba(255, 255, 255, 0.06);
+  color: #aed0f0;
+  border-color: rgba(100, 180, 255, 0.2);
 }
 .memo-popup-actions {
   display: flex;
-  gap: 4px;
-  margin-top: 4px;
+  gap: 6px;
   justify-content: flex-end;
 }
 
-/* ── 말풍선 ── */
+/* ── 모바일 모달 backdrop ── */
+.memo-modal-backdrop {
+  display: none;
+}
+@media (max-width: 1200px) {
+  .memo-modal-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(3px);
+    z-index: 399;
+  }
+}
+
+/* ── 메모 모달 ── */
 .memo-bubble {
   position: fixed;
   z-index: 400;
-  width: 300px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
-  padding: 12px 14px;
+  width: 320px;
+  background: #eef5fd;
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12), 0 10px 32px rgba(100,180,255,0.2);
+  overflow: hidden;
 }
+[data-theme='dark'] .memo-bubble {
+  background: #1a2a3d;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 10px 32px rgba(100,180,255,0.1);
+}
+
+.memo-bubble-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(100, 180, 255, 0.12);
+  border-bottom: 1px solid rgba(100, 180, 255, 0.15);
+}
+.memo-bubble-header-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(60, 130, 210, 0.95);
+  letter-spacing: 0.05em;
+}
+[data-theme='dark'] .memo-bubble-header-label {
+  color: rgba(120, 190, 255, 0.9);
+}
+
+.memo-bubble-quote {
+  font-size: 0.75rem;
+  color: rgba(70, 140, 210, 0.8);
+  font-style: italic;
+  padding: 8px 14px;
+  margin: 0;
+  border-bottom: 1px solid rgba(100, 180, 255, 0.1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+[data-theme='dark'] .memo-bubble-quote {
+  color: rgba(120, 180, 255, 0.65);
+}
+
+.memo-bubble-body {
+  padding: 13px 14px 14px;
+}
+
 .memo-bubble-text {
-  font-size: 0.88rem;
-  color: var(--text-primary);
-  line-height: 1.6;
-  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: #1a3150;
+  line-height: 1.65;
+  margin: 0 0 10px;
   white-space: pre-wrap;
   word-break: break-word;
 }
+[data-theme='dark'] .memo-bubble-text {
+  color: #aed0f0;
+}
+
 .memo-bubble-actions {
   display: flex;
   gap: 6px;
-  margin-top: 4px;
 }
 .memo-bubble-edit {
   font-size: 0.75rem;
-  padding: 3px 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
+  padding: 4px 12px;
+  border: 1px solid rgba(100, 180, 255, 0.35);
+  border-radius: 6px;
   background: transparent;
-  color: var(--text-secondary);
+  color: rgba(60, 130, 210, 0.9);
   cursor: pointer;
+  transition: background 0.15s;
 }
-.memo-bubble-edit:hover { background: var(--bg-tertiary); }
+.memo-bubble-edit:hover { background: rgba(100, 180, 255, 0.1); }
 .memo-bubble-delete {
   font-size: 0.75rem;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border: 1px solid #fca5a5;
-  border-radius: 4px;
+  border-radius: 6px;
   background: transparent;
   color: #ef4444;
   cursor: pointer;
+  transition: background 0.15s;
 }
 .memo-bubble-delete:hover { background: #fee2e2; }
 .memo-bubble-close {
-  position: absolute;
-  top: 8px;
-  right: 10px;
   background: none;
   border: none;
-  font-size: 0.8rem;
-  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  color: rgba(100, 160, 220, 0.7);
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 2px 6px;
+  line-height: 1;
+  transition: color 0.15s;
 }
+.memo-bubble-close:hover { color: rgba(60, 130, 210, 1); }
 
-/* ── 반응형 ── */
-@media (max-width: 768px) {
-  .memo-textarea { width: 90vw; max-width: 320px; }
-  .memo-bubble { width: 280px; }
-}
-@media (max-width: 480px) {
-  .memo-bubble { width: calc(100vw - 24px); }
+/* ── 모바일: 중앙 모달 ── */
+@media (max-width: 1200px) {
+  .memo-bubble {
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%);
+    width: min(360px, calc(100vw - 40px));
+  }
 }
