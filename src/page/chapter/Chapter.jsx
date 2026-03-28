@@ -117,6 +117,12 @@ function Chapter() {
   const [bubblePos, setBubblePos] = useState(null);
   const [editingMemo, setEditingMemo] = useState(null);
   const [memoAnnotationPositions, setMemoAnnotationPositions] = useState({});
+  const [memoToast, setMemoToast] = useState(null);
+
+  const showMemoToast = useCallback((message, type = 'success') => {
+    setMemoToast({ message, type });
+    setTimeout(() => setMemoToast(null), 2500);
+  }, []);
 
   const SITE_URL = 'https://chanhan.blog';
 
@@ -955,8 +961,9 @@ function Chapter() {
                           setMemoNote('');
                           setMemoMode(false);
                           handlePopupClose();
+                          showMemoToast('메모가 저장되었습니다');
                         } catch (err) {
-                          alert(`메모 저장 실패: ${err.message}`);
+                          showMemoToast('메모 저장 실패', 'error');
                         }
                       }}
                     >
@@ -1010,8 +1017,9 @@ function Chapter() {
                           try {
                             await editMemo(activeMemo.id, memoNote.trim(), getToken());
                             setActiveMemo(null); setBubblePos(null); setEditingMemo(null); setMemoNote('');
+                            showMemoToast('메모가 수정되었습니다');
                           } catch (err) {
-                            alert(`메모 수정 실패: ${err.message}`);
+                            showMemoToast('메모 수정 실패', 'error');
                           }
                         }}>저장</button>
                         <button className="highlight-popup-cancel" onClick={() => { setEditingMemo(null); setMemoNote(''); }}>취소</button>
@@ -1027,8 +1035,9 @@ function Chapter() {
                             try {
                               await deleteMemo(activeMemo.id, getToken());
                               setActiveMemo(null); setBubblePos(null);
+                              showMemoToast('메모가 삭제되었습니다');
                             } catch (err) {
-                              alert(`메모 삭제 실패: ${err.message}`);
+                              showMemoToast('메모 삭제 실패', 'error');
                             }
                           }}>삭제</button>
                         </div>
@@ -1091,6 +1100,13 @@ function Chapter() {
         <div className="chapter-share-toast">
           <FiCheck size={14} />
           <span>{shareToast}</span>
+        </div>
+      )}
+
+      {memoToast && (
+        <div className={`memo-toast memo-toast--${memoToast.type}`}>
+          {memoToast.type === 'success' ? <FiCheck size={14} /> : '✕'}
+          <span>{memoToast.message}</span>
         </div>
       )}
 
