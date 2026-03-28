@@ -977,7 +977,10 @@ function Chapter() {
               />
               <div
                 className="memo-bubble"
-                style={{ left: Math.max(10, Math.min(bubblePos.x - 160, window.innerWidth - 340)), top: bubblePos.y }}
+                style={{
+                  left: Math.max(10, Math.min(bubblePos.x - 160, window.innerWidth - 330)),
+                  top: Math.min(bubblePos.y, window.innerHeight - 240),
+                }}
                 onMouseDown={(e) => e.preventDefault()}
               >
                 <div className="memo-bubble-header">

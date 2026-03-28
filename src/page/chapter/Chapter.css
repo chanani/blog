@@ -1214,16 +1214,6 @@ mark.chapter-highlight:hover::after {
 .memo-modal-backdrop {
   display: none;
 }
-@media (max-width: 1200px) {
-  .memo-modal-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(3px);
-    z-index: 399;
-  }
-}
 
 /* ── 메모 모달 ── */
 .memo-bubble {
@@ -1327,12 +1317,9 @@ mark.chapter-highlight:hover::after {
 }
 .memo-bubble-close:hover { color: rgba(60, 130, 210, 1); }
 
-/* ── 모바일: 중앙 모달 ── */
-@media (max-width: 1200px) {
+/* ── 모바일: 너비만 조정 ── */
+@media (max-width: 480px) {
   .memo-bubble {
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%);
-    width: min(360px, calc(100vw - 40px));
+    width: calc(100vw - 32px);
   }
 }
