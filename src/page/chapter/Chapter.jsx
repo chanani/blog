@@ -961,9 +961,9 @@ function Chapter() {
                           setMemoNote('');
                           setMemoMode(false);
                           handlePopupClose();
-                          showMemoToast('메모가 저장되었습니다');
+                          setTimeout(() => showMemoToast('메모가 저장되었습니다'), 0);
                         } catch (err) {
-                          showMemoToast('메모 저장 실패', 'error');
+                          setTimeout(() => showMemoToast('메모 저장 실패', 'error'), 0);
                         }
                       }}
                     >
@@ -1017,9 +1017,9 @@ function Chapter() {
                           try {
                             await editMemo(activeMemo.id, memoNote.trim(), getToken());
                             setActiveMemo(null); setBubblePos(null); setEditingMemo(null); setMemoNote('');
-                            showMemoToast('메모가 수정되었습니다');
+                            setTimeout(() => showMemoToast('메모가 수정되었습니다'), 0);
                           } catch (err) {
-                            showMemoToast('메모 수정 실패', 'error');
+                            setTimeout(() => showMemoToast('메모 수정 실패', 'error'), 0);
                           }
                         }}>저장</button>
                         <button className="highlight-popup-cancel" onClick={() => { setEditingMemo(null); setMemoNote(''); }}>취소</button>
@@ -1035,9 +1035,9 @@ function Chapter() {
                             try {
                               await deleteMemo(activeMemo.id, getToken());
                               setActiveMemo(null); setBubblePos(null);
-                              showMemoToast('메모가 삭제되었습니다');
+                              setTimeout(() => showMemoToast('메모가 삭제되었습니다'), 0);
                             } catch (err) {
-                              showMemoToast('메모 삭제 실패', 'error');
+                              setTimeout(() => showMemoToast('메모 삭제 실패', 'error'), 0);
                             }
                           }}>삭제</button>
                         </div>
