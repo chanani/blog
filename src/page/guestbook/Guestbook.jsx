@@ -142,7 +142,7 @@ function Guestbook() {
   return (
     <main className="guestbook-page">
       <Helmet>
-        <title>guestbook — chanani.</title>
+        <title>guestbook — chanani</title>
         <meta name="description" content="chanani의 방명록입니다. 자유롭게 글을 남겨주세요." />
         <link rel="canonical" href="https://chanhan.blog/guestbook" />
       </Helmet>
@@ -171,19 +171,6 @@ function Guestbook() {
               ))}
             </div>
 
-            {/* Nickname */}
-            <div className="gb-field">
-              <label className="gb-label">Nickname</label>
-              <input
-                className="gb-input"
-                placeholder="Enter your nickname"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-                maxLength={30}
-                disabled={submitting}
-              />
-            </div>
-
             {/* Message */}
             <textarea
               className="gb-textarea"
@@ -191,7 +178,7 @@ function Guestbook() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               maxLength={500}
-              rows={4}
+              rows={3}
               disabled={submitting}
               style={{ background: selectedBg }}
             />
@@ -199,18 +186,16 @@ function Guestbook() {
             {/* Bottom */}
             <div className="gb-form-bottom">
               {formError && <p className="gb-form-error">{formError}</p>}
-              <div className="gb-form-actions">
-                <button
-                  type="button"
-                  className="gb-logout-btn"
-                  onClick={() => { window.location.href = '/api/oauth/logout'; }}
-                >
-                  로그아웃
-                </button>
-                <button className="gb-submit-btn" type="submit" disabled={submitting}>
-                  {submitting ? '저장 중...' : 'Post 💙'}
-                </button>
-              </div>
+              <button
+                type="button"
+                className="gb-logout-btn"
+                onClick={() => { window.location.href = '/api/oauth/logout'; }}
+              >
+                로그아웃
+              </button>
+              <button className="gb-submit-btn" type="submit" disabled={submitting}>
+                {submitting ? '저장 중...' : 'Post'}
+              </button>
             </div>
           </form>
         ) : (

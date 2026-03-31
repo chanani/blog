@@ -39,9 +39,9 @@
 .gb-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
   margin-bottom: 48px;
-  padding: 28px;
+  padding: 20px;
   background: var(--bg-secondary);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
@@ -84,14 +84,14 @@
 /* ── Color picker ── */
 .gb-color-row {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .gb-color-swatch {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   border: 2px solid var(--border-color);
   cursor: pointer;
   flex-shrink: 0;
@@ -99,12 +99,12 @@
 }
 
 .gb-color-swatch:hover {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 .gb-color-swatch.selected {
   border-color: var(--accent-primary);
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 /* ── Nickname field ── */
@@ -169,6 +169,7 @@
 .gb-form-bottom {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
 }
 
@@ -178,19 +179,13 @@
   flex: 1;
 }
 
-.gb-form-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-}
-
 .gb-logout-btn {
   font-size: 0.78rem;
   color: var(--text-tertiary);
   background: none;
   cursor: pointer;
   transition: color 0.15s;
+  margin-right: auto;
 }
 
 .gb-logout-btn:hover {
