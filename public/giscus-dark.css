@@ -101,8 +101,8 @@ a[href*="giscus.app"] {
   display: none !important;
 }
 
-/* Hide comment/reply count, keep sort toggle */
-.gsc-left-header {
+/* Hide everything in .gsc-main except the write form */
+.gsc-main > *:not(.gsc-comment-box) {
   display: none !important;
 }
 

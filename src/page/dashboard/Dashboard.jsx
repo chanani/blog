@@ -18,26 +18,28 @@ function Dashboard() {
         <link rel="canonical" href="https://chanhan.blog/" />
       </Helmet>
 
-      <div className="hero-text">
-        <h1>
-          <span className="hero-line">Write code.</span>
-          <span className="hero-line">Read books.</span>
-          <span className="hero-line">Stay curious.</span>
-        </h1>
-      </div>
+      <div className="hero-inner">
+        <div className="hero-text">
+          <h1>
+            <span className="hero-line">Write code.</span>
+            <span className="hero-line">Read books.</span>
+            <span className="hero-line">Stay curious.</span>
+          </h1>
+        </div>
 
-      <div className="hero-info">
-        <div className="hero-info-item">
-          <span className="hero-info-label">LOCATION</span>
-          <span className="hero-info-value">Seoul, Korea</span>
-        </div>
-        <div className="hero-info-item">
-          <span className="hero-info-label">ROLE</span>
-          <span className="hero-info-value">Backend Developer</span>
-        </div>
-        <div className="hero-info-item">
-          <span className="hero-info-label">CONTACT</span>
-          <span className="hero-info-value">theholidaynight@gmail.com</span>
+        <div className="hero-info">
+          <div className="hero-info-item">
+            <span className="hero-info-label">LOCATION</span>
+            <span className="hero-info-value">Seoul, Korea</span>
+          </div>
+          <div className="hero-info-item">
+            <span className="hero-info-label">ROLE</span>
+            <span className="hero-info-value">Backend Developer</span>
+          </div>
+          <div className="hero-info-item">
+            <span className="hero-info-label">CONTACT</span>
+            <span className="hero-info-value">theholidaynight@gmail.com</span>
+          </div>
         </div>
       </div>
     </main>

@@ -186,22 +186,24 @@ function DevHome() {
       <div className="blog-layout">
         {/* ── Sidebar ── */}
         <aside className="blog-sidebar">
-          <div className="blog-search-wrap">
-            <FiSearch size={14} className="blog-search-icon" />
-            <input
-              type="text"
-              placeholder="검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="blog-search-input"
-            />
-            {searchQuery && (
-              <button className="blog-search-clear" onClick={() => setSearchQuery('')}>
-                <FiX size={13} />
-              </button>
-            )}
+          <div className="sidebar-top">
+            <div className="blog-search-wrap">
+              <FiSearch size={14} className="blog-search-icon" />
+              <input
+                type="text"
+                placeholder="검색..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="blog-search-input"
+              />
+              {searchQuery && (
+                <button className="blog-search-clear" onClick={() => setSearchQuery('')}>
+                  <FiX size={13} />
+                </button>
+              )}
+            </div>
+            <SortDropdown value={sortOrder} onChange={(v) => { setSortOrder(v); setCurrentPage(1); }} />
           </div>
-          <SortDropdown value={sortOrder} onChange={(v) => { setSortOrder(v); setCurrentPage(1); }} />
           <ul className="sidebar-cat-list">
             {categories.map((cat) => (
               <li key={cat}>

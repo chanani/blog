@@ -395,15 +395,26 @@
     padding-bottom: 16px;
   }
 
-  .blog-sidebar .blog-search-wrap {
-    margin-bottom: 8px;
-  }
-
-  .sort-dropdown {
+  .sidebar-top {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
     margin-bottom: 12px;
   }
 
-  .sort-dropdown-trigger {
+  .sidebar-top .blog-search-wrap {
+    flex: 1;
+    margin-bottom: 0;
+  }
+
+  .sidebar-top .sort-dropdown {
+    flex-shrink: 0;
+    width: 110px;
+    margin-bottom: 0;
+  }
+
+  .sidebar-top .sort-dropdown-trigger {
     width: 100%;
   }
 

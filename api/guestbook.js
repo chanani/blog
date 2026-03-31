@@ -1,21 +1,54 @@
-export default async function handler(req, res) {
-  const ghToken = process.env.VITE_GITHUB_TOKEN;
-  const ghOwner = process.env.VITE_GITHUB_OWNER;
-  const emptyRes = { comments: [], page: 1, totalPages: 0 };
+const GH_GRAPHQL = 'https://api.github.com/graphql';
+const CATEGORY_ID = 'DIC_kwDORI3Ks84C15da';
 
-  if (!ghToken) return res.json(emptyRes);
+function gqlHeaders(token) {
+  return {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  };
+}
 
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const pageSize = 10;
+function parseEntry(node) {
+  const body = node.body || '';
+  const match = body.match(/^\*\*(.+?)\*\*\n\n([\s\S]*)$/);
+  const nickname = match ? match[1].trim() : (node.author?.login || '익명');
+  const message = match ? match[2].trim() : body.trim();
+  return {
+    id: node.id,
+    nickname,
+    avatar: node.author?.avatarUrl || '',
+    message,
+    createdAt: node.createdAt,
+  };
+}
 
+async function findDiscussion(owner, token) {
   const query = `{
-    repository(owner: "${ghOwner}", name: "blog") {
-      discussions(first: 10, categoryId: "DIC_kwDORI3Ks84C15da") {
+    repository(owner: "${owner}", name: "blog") {
+      discussions(first: 20, categoryId: "${CATEGORY_ID}") {
+        nodes { id title }
+      }
+    }
+  }`;
+  const r = await fetch(GH_GRAPHQL, {
+    method: 'POST',
+    headers: gqlHeaders(token),
+    body: JSON.stringify({ query }),
+  });
+  const data = await r.json();
+  const nodes = data?.data?.repository?.discussions?.nodes || [];
+  return nodes.find((d) => d.title.toLowerCase() === 'guestbook') || null;
+}
+
+async function fetchComments(owner, token) {
+  const query = `{
+    repository(owner: "${owner}", name: "blog") {
+      discussions(first: 20, categoryId: "${CATEGORY_ID}") {
         nodes {
-          title
+          id title
           comments(last: 100) {
-            totalCount
             nodes {
+              id
               author { login avatarUrl }
               body
               createdAt
@@ -25,39 +58,94 @@ export default async function handler(req, res) {
       }
     }
   }`;
+  const r = await fetch(GH_GRAPHQL, {
+    method: 'POST',
+    headers: gqlHeaders(token),
+    body: JSON.stringify({ query }),
+  });
+  const data = await r.json();
+  const nodes = data?.data?.repository?.discussions?.nodes || [];
+  const disc = nodes.find((d) => d.title.toLowerCase() === 'guestbook');
+  return disc?.comments?.nodes || [];
+}
 
-  try {
-    const response = await fetch('https://api.github.com/graphql', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${ghToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query }),
-    });
+async function addComment(discussionId, body, token) {
+  const mutation = `
+    mutation($discussionId: ID!, $body: String!) {
+      addDiscussionComment(input: { discussionId: $discussionId, body: $body }) {
+        comment {
+          id
+          author { login }
+          body
+          createdAt
+        }
+      }
+    }
+  `;
+  const r = await fetch(GH_GRAPHQL, {
+    method: 'POST',
+    headers: gqlHeaders(token),
+    body: JSON.stringify({ query: mutation, variables: { discussionId, body } }),
+  });
+  const data = await r.json();
+  if (data.errors) throw new Error(data.errors[0]?.message || 'GraphQL error');
+  return data?.data?.addDiscussionComment?.comment || null;
+}
 
-    if (!response.ok) return res.json(emptyRes);
+export default async function handler(req, res) {
+  const ghToken = process.env.VITE_GITHUB_TOKEN;
+  const ghOwner = process.env.VITE_GITHUB_OWNER;
+  const emptyRes = { entries: [], totalPages: 0 };
 
-    const data = await response.json();
-    const discussions = data?.data?.repository?.discussions?.nodes || [];
-    const guestbook = discussions.find((d) => d.title === 'guestbook');
-
-    if (!guestbook) return res.json(emptyRes);
-
-    const allComments = (guestbook.comments?.nodes || [])
-      .map((c) => ({
-        author: c.author?.login || 'anonymous',
-        avatar: c.author?.avatarUrl || '',
-        body: c.body || '',
-        createdAt: c.createdAt,
-      }))
-      .reverse();
-
-    const totalPages = Math.ceil(allComments.length / pageSize);
-    const safePage = Math.min(page, Math.max(1, totalPages));
-    const start = (safePage - 1) * pageSize;
-    const comments = allComments.slice(start, start + pageSize);
-
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');
-    res.json({ comments, page: safePage, totalPages });
-  } catch {
-    res.json(emptyRes);
+  if (!ghToken || !ghOwner) {
+    if (req.method === 'POST') return res.status(500).json({ error: 'Config error' });
+    return res.json(emptyRes);
   }
+
+  // ── GET ───────────────────────────────────────────────────────
+  if (req.method === 'GET') {
+    try {
+      const page = Math.max(1, parseInt(req.query.page) || 1);
+      const perPage = 20;
+      const raw = await fetchComments(ghOwner, ghToken);
+      const all = raw.map(parseEntry).reverse();
+      const totalPages = Math.max(1, Math.ceil(all.length / perPage));
+      const safePage = Math.min(page, totalPages);
+      const entries = all.slice((safePage - 1) * perPage, safePage * perPage);
+
+      res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=15');
+      return res.json({ entries, page: safePage, totalPages });
+    } catch {
+      return res.json(emptyRes);
+    }
+  }
+
+  // ── POST ──────────────────────────────────────────────────────
+  if (req.method === 'POST') {
+    try {
+      const { nickname, message } = req.body || {};
+
+      if (!nickname || typeof nickname !== 'string' || !nickname.trim())
+        return res.status(400).json({ error: '닉네임을 입력해주세요.' });
+      if (!message || typeof message !== 'string' || !message.trim())
+        return res.status(400).json({ error: '내용을 입력해주세요.' });
+      if (nickname.trim().length > 30)
+        return res.status(400).json({ error: '닉네임은 30자 이하로 입력해주세요.' });
+      if (message.trim().length > 500)
+        return res.status(400).json({ error: '내용은 500자 이하로 입력해주세요.' });
+
+      const disc = await findDiscussion(ghOwner, ghToken);
+      if (!disc) return res.status(500).json({ error: '방명록을 찾을 수 없습니다.' });
+
+      const body = `**${nickname.trim()}**\n\n${message.trim()}`;
+      const comment = await addComment(disc.id, body, ghToken);
+      if (!comment) return res.status(500).json({ error: '저장에 실패했습니다.' });
+
+      return res.status(201).json(parseEntry(comment));
+    } catch (e) {
+      return res.status(500).json({ error: e.message || '서버 오류가 발생했습니다.' });
+    }
+  }
+
+  res.status(405).json({ error: 'Method not allowed' });
 }

@@ -3,50 +3,156 @@
   background: var(--bg-primary);
 }
 
-/* ── Full-width hero strip ── */
-.guestbook-hero {
-  background: #380bea;
-  padding: 56px 32px 48px;
+/* ── Header ── */
+.guestbook-header {
+  border-bottom: 1px solid var(--border-color);
+  padding: 40px 32px 32px;
 }
 
-.guestbook-hero-inner {
-  max-width: 720px;
+.guestbook-header-inner {
+  max-width: var(--max-width);
   margin: 0 auto;
 }
 
 .guestbook-title {
-  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-size: 2rem;
   font-weight: 900;
-  color: #ffffff;
+  color: var(--text-primary);
   letter-spacing: -0.03em;
   line-height: 1;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .guestbook-desc {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1.6;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
 }
 
-/* ── Comments section ── */
+/* ── Body ── */
 .guestbook-body {
-  max-width: 720px;
+  max-width: var(--max-width);
   margin: 0 auto;
-  padding: 48px 32px 80px;
+  padding: 40px 32px 80px;
 }
 
-.guestbook-comments .giscus,
-.guestbook-comments .giscus-frame {
+/* ── Giscus write section ── */
+.gb-write-section {
+  margin-bottom: 48px;
+}
+
+.gb-write-section .giscus,
+.gb-write-section .giscus-frame {
   width: 100% !important;
 }
 
+/* ── Status ── */
+.gb-status {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  padding: 40px 0;
+}
+
+.gb-status-error {
+  color: #ef4444;
+}
+
+/* ── Card Grid ── */
+.gb-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* ── Card ── */
+.gb-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  min-height: 140px;
+}
+
+.gb-card-message {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: #1a1a2e;
+  word-break: break-word;
+  flex: 1;
+}
+
+.gb-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gb-card-author {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.gb-card-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.gb-card-nickname {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.gb-card-date {
+  font-size: 0.72rem;
+  color: rgba(26, 26, 46, 0.5);
+  white-space: nowrap;
+}
+
+/* Pastel card colors */
+.card-yellow { background: #fef9c3; }
+.card-blue   { background: #dbeafe; }
+.card-green  { background: #dcfce7; }
+.card-pink   { background: #fce7f3; }
+.card-purple { background: #ede9fe; }
+.card-orange { background: #ffedd5; }
+
+/* Dark mode: keep card text dark against light pastel bg */
+[data-theme='dark'] .gb-card-message,
+[data-theme='dark'] .gb-card-nickname {
+  color: #1a1a2e;
+}
+
+[data-theme='dark'] .gb-card-date {
+  color: rgba(26, 26, 46, 0.5);
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .gb-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
-  .guestbook-hero {
-    padding: 40px 20px 36px;
+  .guestbook-header {
+    padding: 28px 20px 24px;
   }
 
   .guestbook-body {
-    padding: 32px 20px 60px;
+    padding: 28px 20px 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gb-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -101,24 +101,19 @@ a[href*="giscus.app"] {
   display: none !important;
 }
 
-/* Hide comment/reply count, keep sort toggle */
-.gsc-left-header {
-  display: none !important;
-}
-
 /* Full width */
 .gsc-main {
   max-width: 100% !important;
   width: 100% !important;
 }
 
-.gsc-comments {
+.gsc-comment-box {
   max-width: 100% !important;
 }
 
-
-.gsc-comment-box {
-  max-width: 100% !important;
+/* Hide everything in .gsc-main except the write form */
+.gsc-main > *:not(.gsc-comment-box) {
+  display: none !important;
 }
 
 /* ── 댓글 카드 스타일 ── */
