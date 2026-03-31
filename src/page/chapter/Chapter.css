@@ -145,7 +145,7 @@
 }
 
 .chapter-article {
-  background: var(--bg-secondary);
+  background: #fafafa;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -512,6 +512,7 @@
   padding: 24px 24px 32px;
   line-height: 1.8;
   color: var(--text-primary);
+  background: #fafafa;
 }
 
 .chapter-body.font-default {
