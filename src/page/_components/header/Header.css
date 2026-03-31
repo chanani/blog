@@ -39,16 +39,16 @@
 .header-nav-link {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--accent-primary);
   transition: color 0.15s;
 }
 
 .header-nav-link:hover {
-  color: var(--text-primary);
+  color: var(--accent-hover);
 }
 
 .header-nav-link.active {
-  color: var(--text-primary);
+  color: var(--accent-primary);
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 4px;
