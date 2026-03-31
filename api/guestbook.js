@@ -108,6 +108,8 @@ export default async function handler(req, res) {
       const cookies = parseCookies(req.headers.cookie);
       const userToken = cookies.gb_token;
       if (!userToken) return res.status(401).json({ error: '로그인이 필요합니다.' });
+      // Google users post via admin token (Google OAuth doesn't grant GitHub access)
+      const postToken = userToken === 'google' ? ghToken : userToken;
 
       // Get user info from cookie
       let userLogin = '익명';
@@ -130,7 +132,7 @@ export default async function handler(req, res) {
       if (!disc) return res.status(500).json({ error: '방명록을 찾을 수 없습니다.' });
 
       const body = `**${userLogin}** color=${safeColor}\n\n${message.trim()}`;
-      const comment = await addComment(disc.id, body, userToken);
+      const comment = await addComment(disc.id, body, postToken);
       if (!comment) return res.status(500).json({ error: '저장에 실패했습니다.' });
 
       return res.status(201).json({ ...parseEntry(comment, 0), avatar: userAvatar });

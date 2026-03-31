@@ -236,9 +236,45 @@
   background: #545d68;
 }
 
+.gb-login-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 .gb-login-desc {
   font-size: 0.8rem;
   color: var(--text-tertiary);
+}
+
+.gb-google-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #3c4043;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: var(--radius-md);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.gb-google-btn:hover {
+  background: #f8f9fa;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+[data-theme='dark'] .gb-google-btn {
+  color: #e8eaed;
+  background: #3c4043;
+  border-color: #5f6368;
+}
+
+[data-theme='dark'] .gb-google-btn:hover {
+  background: #494d51;
 }
 
 /* ── Status ── */
