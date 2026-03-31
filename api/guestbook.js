@@ -112,7 +112,7 @@ export default async function handler(req, res) {
       const totalPages = Math.max(1, Math.ceil(all.length / perPage));
       const safePage = Math.min(page, totalPages);
       const entries = all.slice((safePage - 1) * perPage, safePage * perPage);
-      res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=15');
+      res.setHeader('Cache-Control', 'no-store');
       return res.json({ entries, page: safePage, totalPages });
     } catch {
       return res.json(emptyRes);
