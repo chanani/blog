@@ -1,41 +1,31 @@
-.guestbook {
-  max-width: var(--max-width);
+.guestbook-page {
+  flex: 1;
+}
+
+.guestbook-inner {
+  max-width: 720px;
   margin: 0 auto;
-  padding: 24px 24px;
-  width: 100%;
+  padding: 56px 32px 80px;
 }
 
-.guestbook-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.guestbook-intro {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  background: var(--bg-secondary);
-  padding: 14px 24px;
+.guestbook-header {
+  margin-bottom: 48px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 28px;
 }
 
 .guestbook-title {
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 900;
   color: var(--text-primary);
-  white-space: nowrap;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
 }
 
 .guestbook-desc {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.guestbook-comments {
-  min-height: 300px;
+  line-height: 1.6;
 }
 
 .guestbook-comments .giscus,
@@ -44,11 +34,16 @@
 }
 
 @media (max-width: 768px) {
-  .guestbook {
-    padding: 20px 16px;
+  .guestbook-inner {
+    padding: 36px 20px 60px;
   }
 
-  .guestbook-intro {
-    padding: 14px 20px;
+  .guestbook-header {
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+  }
+
+  .guestbook-title {
+    font-size: 1.6rem;
   }
 }
