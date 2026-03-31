@@ -24,15 +24,21 @@
   flex-shrink: 0;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
 .header-nav {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 28px;
 }
 
 .header-nav-link {
   font-size: 0.85rem;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--text-secondary);
   transition: color 0.15s;
 }
@@ -164,7 +170,7 @@
 /* ── Hero page: header blends into background ── */
 body.hero-page .header {
   background: #380bea;
-  border-bottom-color: rgba(255, 255, 255, 0.12);
+  border-bottom-color: transparent;
 }
 
 body.hero-page .header-logo {

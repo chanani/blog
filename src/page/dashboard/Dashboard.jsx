@@ -20,9 +20,9 @@ function Dashboard() {
 
       <div className="hero-text">
         <h1>
-          <span className="hero-line">꿈꾸고</span>
-          <span className="hero-line">개발하며</span>
-          <span className="hero-line">기록한다.</span>
+          <span className="hero-line">Write code.</span>
+          <span className="hero-line">Read books.</span>
+          <span className="hero-line">Stay curious.</span>
         </h1>
       </div>
 

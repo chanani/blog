@@ -30,29 +30,30 @@ function Header({ theme, toggleTheme }) {
       <div className="header-inner">
         <Link to="/" className="header-logo">chanani.</Link>
 
-        <nav className="header-nav">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className={`header-nav-link${isActive(link.to) ? ' active' : ''}`}
+        <div className="header-right">
+          <nav className="header-nav">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`header-nav-link${isActive(link.to) ? ' active' : ''}`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="header-actions">
+            <button className="header-icon-btn" onClick={toggleTheme} aria-label="테마 전환">
+              {theme === 'light' ? <FiMoon size={15} /> : <FiSun size={15} />}
+            </button>
+            <button
+              className="header-icon-btn mobile-only"
+              onClick={() => setMenuOpen(true)}
+              aria-label="메뉴"
             >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="header-actions">
-          <button className="header-icon-btn" onClick={toggleTheme} aria-label="테마 전환">
-            {theme === 'light' ? <FiMoon size={15} /> : <FiSun size={15} />}
-          </button>
-          <button
-            className="header-icon-btn mobile-only"
-            onClick={() => setMenuOpen(true)}
-            aria-label="메뉴"
-          >
-            <FiMenu size={18} />
-          </button>
+              <FiMenu size={18} />
+            </button>
+          </div>
         </div>
       </div>
 

@@ -2,11 +2,53 @@ import { useEffect, useState, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { FiSearch, FiX, FiCalendar, FiEye, FiMessageSquare, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiSearch, FiX, FiCalendar, FiEye, FiMessageSquare, FiChevronLeft, FiChevronRight, FiChevronDown } from 'react-icons/fi';
 import useDevStore from '../../store/useDevStore';
 import { fetchViewCountBatch } from '../../api/goatcounter';
 import defaultCover from '../../assets/images/default/default.png';
 import './DevHome.css';
+
+const SORT_OPTIONS = [
+  { value: 'latest', label: '최신순' },
+  { value: 'oldest', label: '오래된순' },
+  { value: 'views', label: '조회순' },
+  { value: 'comments', label: '댓글순' },
+];
+
+function SortDropdown({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const selected = SORT_OPTIONS.find((o) => o.value === value);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="sort-dropdown" ref={ref}>
+      <button className="sort-dropdown-trigger" onClick={() => setOpen((v) => !v)}>
+        <span>{selected?.label}</span>
+        <FiChevronDown size={13} className={`sort-arrow${open ? ' open' : ''}`} />
+      </button>
+      {open && (
+        <ul className="sort-dropdown-menu">
+          {SORT_OPTIONS.map((opt) => (
+            <li key={opt.value}>
+              <button
+                className={`sort-dropdown-item${opt.value === value ? ' active' : ''}`}
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+              >
+                {opt.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 function PostItem({ post, index, commentCount, viewCount }) {
   const [imgError, setImgError] = useState(false);
@@ -159,6 +201,7 @@ function DevHome() {
               </button>
             )}
           </div>
+          <SortDropdown value={sortOrder} onChange={(v) => { setSortOrder(v); setCurrentPage(1); }} />
           <ul className="sidebar-cat-list">
             {categories.map((cat) => (
               <li key={cat}>
@@ -178,20 +221,6 @@ function DevHome() {
 
         {/* ── Content ── */}
         <div className="blog-content">
-          {/* Toolbar: sort only */}
-          <div className="blog-toolbar">
-            <select
-              className="blog-sort-select"
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-            >
-              <option value="latest">최신순</option>
-              <option value="oldest">오래된순</option>
-              <option value="views">조회순</option>
-              <option value="comments">댓글순</option>
-            </select>
-          </div>
-
           {/* Loading */}
           {loading && (
             <div className="blog-status">
