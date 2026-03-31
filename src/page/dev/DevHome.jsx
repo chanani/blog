@@ -128,6 +128,7 @@ function DevHome() {
       prev.set('page', String(page));
       return prev;
     }, { replace: true });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const [sortOrder, setSortOrder] = useState('latest');
