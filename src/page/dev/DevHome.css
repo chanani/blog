@@ -228,24 +228,27 @@
 /* Post Item */
 .post-list > div {
   border-top: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: background 0.25s ease;
 }
 
 .post-list > div:first-child {
   border-top: none;
 }
 
+.post-list > div:hover {
+  background: var(--accent-light);
+}
+
+.post-list > div:hover + div {
+  border-top-color: transparent;
+}
+
 .post-item {
   display: flex;
   gap: 20px;
-  align-items: flex-start;
+  align-items: center;
   padding: 20px 12px;
-  margin: 0 -12px;
-  transition: background 0.25s ease, border-radius 0.25s ease;
-}
-
-.post-item:hover {
-  background: var(--accent-light);
-  border-radius: var(--radius-md);
 }
 
 .post-thumb {
