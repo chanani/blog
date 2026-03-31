@@ -22,13 +22,17 @@ function Header({ theme, toggleTheme }) {
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    document.body.classList.toggle('menu-open', menuOpen);
+    return () => {
+      document.body.style.overflow = '';
+      document.body.classList.remove('menu-open');
+    };
   }, [menuOpen]);
 
   return (
     <header className="header">
       <div className="header-inner">
-        <Link to="/" className="header-logo">chanani.</Link>
+        <Link to="/" className="header-logo">chanani</Link>
 
         <div className="header-right">
           <nav className="header-nav">
@@ -48,23 +52,16 @@ function Header({ theme, toggleTheme }) {
             </button>
             <button
               className="header-icon-btn mobile-only"
-              onClick={() => setMenuOpen(true)}
+              onClick={() => setMenuOpen((v) => !v)}
               aria-label="메뉴"
             >
-              <FiMenu size={18} />
+              {menuOpen ? <FiX size={18} /> : <FiMenu size={18} />}
             </button>
           </div>
         </div>
       </div>
 
-      {menuOpen && (
-        <div className="mobile-overlay" onClick={() => setMenuOpen(false)} />
-      )}
-
       <div className={`mobile-menu${menuOpen ? ' open' : ''}`}>
-        <button className="mobile-menu-close" onClick={() => setMenuOpen(false)} aria-label="닫기">
-          <FiX size={20} />
-        </button>
         <nav className="mobile-nav">
           {NAV_LINKS.map((link) => (
             <Link

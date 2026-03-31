@@ -82,94 +82,82 @@
   display: none;
 }
 
-/* ── Mobile Overlay ── */
-.mobile-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 200;
-}
-
-/* ── Mobile Menu ── */
+/* ── Mobile Menu (fullscreen) ── */
 .mobile-menu {
   position: fixed;
-  top: 0;
-  right: -300px;
-  width: 240px;
-  height: 100vh;
-  background: var(--bg-primary);
-  z-index: 300;
-  padding: 20px 24px 32px;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--accent-primary);
+  z-index: 99;
+  padding: 40px 32px 40px;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--border-color);
-  transition: right 0.25s ease;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
 }
 
 .mobile-menu.open {
-  right: 0;
+  opacity: 1;
+  pointer-events: all;
 }
 
-.mobile-menu-close {
-  align-self: flex-end;
-  color: var(--text-secondary);
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-md);
-  transition: color 0.15s, background 0.15s;
+body.menu-open .header {
+  background: var(--accent-primary);
+  border-bottom-color: transparent;
 }
 
-.mobile-menu-close:hover {
-  color: var(--text-primary);
-  background: var(--bg-tertiary);
+body.menu-open .header-logo,
+body.menu-open .header-icon-btn {
+  color: #ffffff;
+}
+
+body.menu-open .header-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .mobile-nav {
   display: flex;
   flex-direction: column;
-  margin-top: 32px;
-  gap: 2px;
+  flex: 1;
+  justify-content: center;
+  gap: 0;
 }
 
 .mobile-nav-link {
-  font-size: 1rem;
-  font-weight: 400;
-  color: var(--text-secondary);
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-color);
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.65);
+  padding: 16px 0;
+  letter-spacing: -0.03em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   transition: color 0.15s;
 }
 
 .mobile-nav-link:hover,
 .mobile-nav-link.active {
-  color: var(--text-primary);
-}
-
-.mobile-nav-link.active {
-  font-weight: 600;
+  color: #ffffff;
 }
 
 .mobile-theme-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 24px;
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.6);
   padding: 8px 0;
   transition: color 0.15s;
 }
 
 .mobile-theme-btn:hover {
-  color: var(--text-primary);
+  color: #ffffff;
 }
 
 /* ── Hero page: header blends into background ── */
 body.hero-page .header {
-  background: #380bea;
+  background: var(--accent-primary);
   border-bottom-color: transparent;
 }
 

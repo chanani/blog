@@ -1,6 +1,13 @@
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { motion } from 'framer-motion';
 import './Dashboard.css';
+
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 24 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 1.1, ease: [0.22, 1, 0.36, 1], delay },
+});
 
 function Dashboard() {
   useEffect(() => {
@@ -11,7 +18,7 @@ function Dashboard() {
   return (
     <main className="hero">
       <Helmet>
-        <title>chanani.</title>
+        <title>chanani</title>
         <meta name="description" content="꿈꾸고, 개발하며, 기록하는 백엔드 개발자 이찬한의 블로그입니다." />
         <meta property="og:title" content="chanani." />
         <meta property="og:description" content="꿈꾸고, 개발하며, 기록하는 백엔드 개발자 이찬한의 블로그입니다." />
@@ -21,13 +28,13 @@ function Dashboard() {
       <div className="hero-inner">
         <div className="hero-text">
           <h1>
-            <span className="hero-line">Write code.</span>
-            <span className="hero-line">Read books.</span>
-            <span className="hero-line">Stay curious.</span>
+            <motion.span className="hero-line" {...fadeUp(0)}>Write code.</motion.span>
+            <motion.span className="hero-line" {...fadeUp(0.18)}>Read books.</motion.span>
+            <motion.span className="hero-line" {...fadeUp(0.36)}>Stay curious.</motion.span>
           </h1>
         </div>
 
-        <div className="hero-info">
+        <motion.div className="hero-info" {...fadeUp(0.55)}>
           <div className="hero-info-item">
             <span className="hero-info-label">LOCATION</span>
             <span className="hero-info-value">Seoul, Korea</span>
@@ -40,7 +47,7 @@ function Dashboard() {
             <span className="hero-info-label">CONTACT</span>
             <span className="hero-info-value">theholidaynight@gmail.com</span>
           </div>
-        </div>
+        </motion.div>
       </div>
     </main>
   );
