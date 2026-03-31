@@ -1,7 +1,13 @@
+import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import './Dashboard.css';
 
 function Dashboard() {
+  useEffect(() => {
+    document.body.classList.add('hero-page');
+    return () => document.body.classList.remove('hero-page');
+  }, []);
+
   return (
     <main className="hero">
       <Helmet>

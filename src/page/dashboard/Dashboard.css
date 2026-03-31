@@ -1,7 +1,7 @@
 .hero {
   flex: 1;
-  min-height: calc(100vh - var(--header-height));
-  background: #1a1af0;
+  height: calc(100vh - var(--header-height));
+  background: #380bea;
   display: flex;
   align-items: flex-end;
   padding: 40px 48px 52px;

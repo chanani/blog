@@ -28,12 +28,14 @@ function Guestbook() {
         <link rel="canonical" href="https://chanhan.blog/guestbook" />
       </Helmet>
 
-      <div className="guestbook-inner">
-        <header className="guestbook-header">
+      <div className="guestbook-hero">
+        <div className="guestbook-hero-inner">
           <h1 className="guestbook-title">Guestbook</h1>
           <p className="guestbook-desc">방문해주셔서 감사합니다. 자유롭게 글을 남겨주세요 👋</p>
-        </header>
+        </div>
+      </div>
 
+      <div className="guestbook-body">
         <section className="guestbook-comments">
           <Giscus
             repo="chanani/blog"

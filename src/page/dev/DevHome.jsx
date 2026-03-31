@@ -144,6 +144,21 @@ function DevHome() {
       <div className="blog-layout">
         {/* ── Sidebar ── */}
         <aside className="blog-sidebar">
+          <div className="blog-search-wrap">
+            <FiSearch size={14} className="blog-search-icon" />
+            <input
+              type="text"
+              placeholder="검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="blog-search-input"
+            />
+            {searchQuery && (
+              <button className="blog-search-clear" onClick={() => setSearchQuery('')}>
+                <FiX size={13} />
+              </button>
+            )}
+          </div>
           <ul className="sidebar-cat-list">
             {categories.map((cat) => (
               <li key={cat}>
@@ -163,23 +178,8 @@ function DevHome() {
 
         {/* ── Content ── */}
         <div className="blog-content">
-          {/* Toolbar */}
+          {/* Toolbar: sort only */}
           <div className="blog-toolbar">
-            <div className="blog-search-wrap">
-              <FiSearch size={15} className="blog-search-icon" />
-              <input
-                type="text"
-                placeholder="검색..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="blog-search-input"
-              />
-              {searchQuery && (
-                <button className="blog-search-clear" onClick={() => setSearchQuery('')}>
-                  <FiX size={14} />
-                </button>
-              )}
-            </div>
             <select
               className="blog-sort-select"
               value={sortOrder}

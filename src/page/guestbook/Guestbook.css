@@ -1,31 +1,39 @@
 .guestbook-page {
   flex: 1;
+  background: var(--bg-primary);
 }
 
-.guestbook-inner {
+/* ── Full-width hero strip ── */
+.guestbook-hero {
+  background: #380bea;
+  padding: 56px 32px 48px;
+}
+
+.guestbook-hero-inner {
   max-width: 720px;
   margin: 0 auto;
-  padding: 56px 32px 80px;
-}
-
-.guestbook-header {
-  margin-bottom: 48px;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 28px;
 }
 
 .guestbook-title {
-  font-size: 2rem;
+  font-size: clamp(2rem, 5vw, 3.2rem);
   font-weight: 900;
-  color: var(--text-primary);
+  color: #ffffff;
   letter-spacing: -0.03em;
-  margin-bottom: 8px;
+  line-height: 1;
+  margin-bottom: 12px;
 }
 
 .guestbook-desc {
   font-size: 0.9rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.7);
   line-height: 1.6;
+}
+
+/* ── Comments section ── */
+.guestbook-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 32px 80px;
 }
 
 .guestbook-comments .giscus,
@@ -34,16 +42,11 @@
 }
 
 @media (max-width: 768px) {
-  .guestbook-inner {
-    padding: 36px 20px 60px;
+  .guestbook-hero {
+    padding: 40px 20px 36px;
   }
 
-  .guestbook-header {
-    margin-bottom: 32px;
-    padding-bottom: 20px;
-  }
-
-  .guestbook-title {
-    font-size: 1.6rem;
+  .guestbook-body {
+    padding: 32px 20px 60px;
   }
 }
