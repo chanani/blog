@@ -18,7 +18,6 @@
   position: sticky;
   top: calc(var(--header-height) + 24px);
   padding-right: 32px;
-  border-right: 1px solid var(--border-color);
 }
 
 /* Sidebar search */
