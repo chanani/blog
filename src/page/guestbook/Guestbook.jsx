@@ -1,16 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import Giscus from '@giscus/react';
 import './Guestbook.css';
 
-const CARD_COLORS = [
-  'card-yellow',
-  'card-blue',
-  'card-green',
-  'card-pink',
-  'card-purple',
-  'card-orange',
+const COLOR_OPTIONS = [
+  { id: 'yellow',  hex: '#fef9c3' },
+  { id: 'blue',    hex: '#dbeafe' },
+  { id: 'green',   hex: '#dcfce7' },
+  { id: 'pink',    hex: '#fce7f3' },
+  { id: 'purple',  hex: '#ede9fe' },
+  { id: 'orange',  hex: '#ffedd5' },
 ];
 
 function formatDate(iso) {
@@ -19,10 +18,11 @@ function formatDate(iso) {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function GuestbookCard({ entry, colorClass }) {
+function GuestbookCard({ entry }) {
   return (
     <motion.div
-      className={`gb-card ${colorClass}`}
+      className="gb-card"
+      style={{ background: COLOR_OPTIONS.find((c) => c.id === entry.color)?.hex || '#fef9c3' }}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
@@ -44,19 +44,12 @@ function GuestbookCard({ entry, colorClass }) {
 function Guestbook() {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [giscusTheme, setGiscusTheme] = useState(
-    () => document.documentElement.getAttribute('data-theme') || 'light',
-  );
-
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      const t = document.documentElement.getAttribute('data-theme') || 'light';
-      setGiscusTheme(t);
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-    return () => observer.disconnect();
-  }, []);
+  const [formError, setFormError] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [message, setMessage] = useState('');
+  const [selectedColor, setSelectedColor] = useState('yellow');
 
   const fetchEntries = useCallback(async () => {
     setLoading(true);
@@ -75,6 +68,33 @@ function Guestbook() {
 
   useEffect(() => { fetchEntries(); }, [fetchEntries]);
 
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setFormError('');
+    if (!nickname.trim()) return setFormError('닉네임을 입력해주세요.');
+    if (!message.trim()) return setFormError('내용을 입력해주세요.');
+    if (message.trim().length > 500) return setFormError('내용은 500자 이하로 입력해주세요.');
+
+    setSubmitting(true);
+    try {
+      const r = await fetch('/api/guestbook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname: nickname.trim(), message: message.trim(), color: selectedColor }),
+      });
+      const data = await r.json();
+      if (!r.ok) return setFormError(data.error || '저장에 실패했습니다.');
+      setEntries((prev) => [data, ...prev]);
+      setNickname('');
+      setMessage('');
+      setSelectedColor('yellow');
+    } catch {
+      setFormError('네트워크 오류가 발생했습니다.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <main className="guestbook-page">
       <Helmet>
@@ -91,39 +111,56 @@ function Guestbook() {
       </div>
 
       <div className="guestbook-body">
-        {/* Giscus — write form only (comment list hidden via CSS) */}
-        <div className="gb-write-section">
-          <Giscus
-            repo="chanani/blog"
-            repoId="R_kgDORI3Ksw"
-            category="Announcements"
-            categoryId="DIC_kwDORI3Ks84C15da"
-            mapping="specific"
-            term="guestbook"
-            reactionsEnabled="0"
-            emitMetadata="0"
-            inputPosition="top"
-            theme={import.meta.env.DEV
-              ? (giscusTheme === 'dark' ? 'dark_dimmed' : 'light')
-              : `https://chanhan.blog/giscus-${giscusTheme}.css?v=9`}
-            lang="ko"
+        {/* Write form */}
+        <form className="gb-form" onSubmit={handleSubmit}>
+          <div className="gb-form-top">
+            <input
+              className="gb-input"
+              type="text"
+              placeholder="닉네임"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              maxLength={30}
+              disabled={submitting}
+            />
+            <div className="gb-color-picker">
+              {COLOR_OPTIONS.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`gb-color-swatch${selectedColor === c.id ? ' selected' : ''}`}
+                  style={{ background: c.hex }}
+                  onClick={() => setSelectedColor(c.id)}
+                  aria-label={c.id}
+                />
+              ))}
+            </div>
+            <button className="gb-submit-btn" type="submit" disabled={submitting}>
+              {submitting ? '저장 중...' : '남기기'}
+            </button>
+          </div>
+          <textarea
+            className="gb-textarea"
+            placeholder="자유롭게 글을 남겨주세요. (최대 500자)"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            maxLength={500}
+            rows={3}
+            disabled={submitting}
           />
-        </div>
+          {formError && <p className="gb-form-error">{formError}</p>}
+        </form>
 
-        {/* Custom card grid */}
+        {/* Entries */}
         {loading && <p className="gb-status">불러오는 중...</p>}
         {error && <p className="gb-status gb-status-error">{error}</p>}
         {!loading && !error && entries.length === 0 && (
-          <p className="gb-status">아직 남긴 글이 없습니다.</p>
+          <p className="gb-status">아직 남긴 글이 없습니다. 첫 번째 글을 남겨보세요!</p>
         )}
         {!loading && entries.length > 0 && (
           <div className="gb-grid">
-            {entries.map((entry, i) => (
-              <GuestbookCard
-                key={entry.id}
-                entry={entry}
-                colorClass={CARD_COLORS[i % CARD_COLORS.length]}
-              />
+            {entries.map((entry) => (
+              <GuestbookCard key={entry.id} entry={entry} />
             ))}
           </div>
         )}

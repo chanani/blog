@@ -8,15 +8,20 @@ function gqlHeaders(token) {
   };
 }
 
-function parseEntry(node) {
+const COLOR_NAMES = ['yellow', 'blue', 'green', 'pink', 'purple', 'orange'];
+
+function parseEntry(node, index) {
   const body = node.body || '';
-  const match = body.match(/^\*\*(.+?)\*\*\n\n([\s\S]*)$/);
+  // Format: **nickname** color=yellow\n\nmessage
+  const match = body.match(/^\*\*(.+?)\*\*(?:\s+color=(\w+))?\n\n([\s\S]*)$/);
   const nickname = match ? match[1].trim() : (node.author?.login || '익명');
-  const message = match ? match[2].trim() : body.trim();
+  const color = (match && match[2] && COLOR_NAMES.includes(match[2])) ? match[2] : COLOR_NAMES[index % COLOR_NAMES.length];
+  const message = match ? match[3].trim() : body.trim();
   return {
     id: node.id,
     nickname,
     avatar: node.author?.avatarUrl || '',
+    color,
     message,
     createdAt: node.createdAt,
   };
@@ -108,7 +113,8 @@ export default async function handler(req, res) {
       const page = Math.max(1, parseInt(req.query.page) || 1);
       const perPage = 20;
       const raw = await fetchComments(ghOwner, ghToken);
-      const all = raw.map(parseEntry).reverse();
+      const reversed = [...raw].reverse();
+      const all = reversed.map((node, i) => parseEntry(node, i));
       const totalPages = Math.max(1, Math.ceil(all.length / perPage));
       const safePage = Math.min(page, totalPages);
       const entries = all.slice((safePage - 1) * perPage, safePage * perPage);
@@ -137,11 +143,13 @@ export default async function handler(req, res) {
       const disc = await findDiscussion(ghOwner, ghToken);
       if (!disc) return res.status(500).json({ error: '방명록을 찾을 수 없습니다.' });
 
-      const body = `**${nickname.trim()}**\n\n${message.trim()}`;
+      const { color } = req.body || {};
+      const safeColor = (color && COLOR_NAMES.includes(color)) ? color : 'yellow';
+      const body = `**${nickname.trim()}** color=${safeColor}\n\n${message.trim()}`;
       const comment = await addComment(disc.id, body, ghToken);
       if (!comment) return res.status(500).json({ error: '저장에 실패했습니다.' });
 
-      return res.status(201).json(parseEntry(comment));
+      return res.status(201).json(parseEntry(comment, 0));
     } catch (e) {
       return res.status(500).json({ error: e.message || '서버 오류가 발생했습니다.' });
     }
