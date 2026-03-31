@@ -1,6 +1,6 @@
 const GH_GRAPHQL = 'https://api.github.com/graphql';
 const CATEGORY_ID = 'DIC_kwDORI3Ks84C15da';
-const COLOR_NAMES = ['yellow', 'blue', 'green', 'pink', 'purple', 'orange'];
+const COLOR_NAMES = ['white', 'yellow', 'blue', 'green', 'pink', 'purple', 'orange'];
 
 function gqlHeaders(token) {
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
@@ -14,15 +14,17 @@ function parseCookies(cookieStr = '') {
 
 function parseEntry(node, index) {
   const body = node.body || '';
-  const match = body.match(/^\*\*(.+?)\*\*(?:\s+color=(\w+))?\n(?:avatar=([^\n]+)\n)?\n([\s\S]*)$/);
+  const match = body.match(/^\*\*(.+?)\*\*(?:\s+color=(\w+))?(?:\s+emoji=(\S+))?\n(?:avatar=([^\n]+)\n)?\n([\s\S]*)$/);
   const nickname = match ? match[1].trim() : (node.author?.login || '익명');
   const color = (match?.[2] && COLOR_NAMES.includes(match[2])) ? match[2] : COLOR_NAMES[index % COLOR_NAMES.length];
-  const storedAvatar = match?.[3]?.trim() || '';
-  const message = match ? match[4].trim() : body.trim();
+  const emoji = match?.[3]?.trim() || '';
+  const storedAvatar = match?.[4]?.trim() || '';
+  const message = match ? match[5].trim() : body.trim();
   return {
     id: node.id,
     nickname,
     avatar: storedAvatar || node.author?.avatarUrl || '',
+    emoji,
     color,
     message,
     createdAt: node.createdAt,
@@ -138,23 +140,26 @@ export default async function handler(req, res) {
         userAvatar = info.avatar || '';
       } catch { /* ignore */ }
 
-      const { message, color } = req.body || {};
+      const { message, color, emoji, nickname: customNickname } = req.body || {};
       if (!message || typeof message !== 'string' || !message.trim())
         return res.status(400).json({ error: '내용을 입력해주세요.' });
       if (message.trim().length > 500)
         return res.status(400).json({ error: '내용은 500자 이하로 입력해주세요.' });
 
-      const safeColor = (color && COLOR_NAMES.includes(color)) ? color : 'yellow';
+      const safeColor = (color && COLOR_NAMES.includes(color)) ? color : 'green';
+      const safeEmoji = (emoji && typeof emoji === 'string' && emoji.length <= 10) ? emoji.trim() : '';
+      const displayNickname = (customNickname && customNickname.trim()) ? customNickname.trim().slice(0, 30) : userLogin;
 
       const disc = await findDiscussion(ghOwner, ghToken);
       if (!disc) return res.status(500).json({ error: '방명록을 찾을 수 없습니다.' });
 
       const avatarLine = userAvatar ? `avatar=${userAvatar}\n` : '';
-      const body = `**${userLogin}** color=${safeColor}\n${avatarLine}\n${message.trim()}`;
+      const emojiPart = safeEmoji ? ` emoji=${safeEmoji}` : '';
+      const body = `**${displayNickname}** color=${safeColor}${emojiPart}\n${avatarLine}\n${message.trim()}`;
       const comment = await addComment(disc.id, body, postToken);
       if (!comment) return res.status(500).json({ error: '저장에 실패했습니다.' });
 
-      return res.status(201).json({ ...parseEntry(comment, 0), avatar: userAvatar });
+      return res.status(201).json({ ...parseEntry(comment, 0), avatar: userAvatar, emoji: safeEmoji, nickname: displayNickname });
     } catch (e) {
       return res.status(500).json({ error: e.message || '서버 오류가 발생했습니다.' });
     }

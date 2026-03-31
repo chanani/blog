@@ -4,13 +4,16 @@ import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import './Guestbook.css';
 
+const EMOJI_OPTIONS = ['💙', '✨', '👻', '🎉', '👋', '🧑‍💻', '☁️', '🤖', '🍺'];
+
 const COLOR_OPTIONS = [
-  { id: 'yellow',  hex: '#fef9c3' },
-  { id: 'blue',    hex: '#dbeafe' },
-  { id: 'green',   hex: '#dcfce7' },
-  { id: 'pink',    hex: '#fce7f3' },
-  { id: 'purple',  hex: '#ede9fe' },
-  { id: 'orange',  hex: '#ffedd5' },
+  { id: 'white',  hex: '#f8fafc' },
+  { id: 'yellow', hex: '#fef9c3' },
+  { id: 'green',  hex: '#dcfce7' },
+  { id: 'blue',   hex: '#dbeafe' },
+  { id: 'pink',   hex: '#fce7f3' },
+  { id: 'purple', hex: '#ede9fe' },
+  { id: 'orange', hex: '#ffedd5' },
 ];
 
 function getGbUser() {
@@ -28,7 +31,7 @@ function formatDate(iso) {
 }
 
 function GuestbookCard({ entry, user, onDelete }) {
-  const bg = COLOR_OPTIONS.find((c) => c.id === entry.color)?.hex || '#fef9c3';
+  const bg = COLOR_OPTIONS.find((c) => c.id === entry.color)?.hex || '#dcfce7';
   const isOwner = user && user.login === entry.nickname;
 
   async function handleDelete() {
@@ -50,7 +53,10 @@ function GuestbookCard({ entry, user, onDelete }) {
       <p className="gb-card-message">{entry.message}</p>
       <div className="gb-card-footer">
         <div className="gb-card-author">
-          {entry.avatar && <img className="gb-card-avatar" src={entry.avatar} alt={entry.nickname} />}
+          {entry.emoji
+            ? <span className="gb-card-emoji">{entry.emoji}</span>
+            : entry.avatar && <img className="gb-card-avatar" src={entry.avatar} alt={entry.nickname} />
+          }
           <span className="gb-card-nickname">{entry.nickname}</span>
         </div>
         <div className="gb-card-footer-right">
@@ -71,12 +77,16 @@ function Guestbook() {
   const [error, setError] = useState('');
   const [formError, setFormError] = useState('');
   const [message, setMessage] = useState('');
-  const [selectedColor, setSelectedColor] = useState('yellow');
+  const [selectedColor, setSelectedColor] = useState('green');
+  const [selectedEmoji, setSelectedEmoji] = useState('💙');
+  const [nickname, setNickname] = useState('');
   const [user, setUser] = useState(null);
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    setUser(getGbUser());
+    const u = getGbUser();
+    setUser(u);
+    if (u) setNickname(u.login);
     if (searchParams.get('auth') === 'fail') setFormError('로그인에 실패했습니다. 다시 시도해주세요.');
   }, []);
 
@@ -100,6 +110,7 @@ function Guestbook() {
   async function handleSubmit(e) {
     e.preventDefault();
     setFormError('');
+    if (!user) return setFormError('로그인이 필요합니다.');
     if (!message.trim()) return setFormError('내용을 입력해주세요.');
     if (message.trim().length > 500) return setFormError('내용은 500자 이하로 입력해주세요.');
 
@@ -108,7 +119,12 @@ function Guestbook() {
       const r = await fetch('/api/guestbook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: message.trim(), color: selectedColor }),
+        body: JSON.stringify({
+          message: message.trim(),
+          color: selectedColor,
+          emoji: selectedEmoji,
+          nickname: nickname.trim() || user.login,
+        }),
       });
       const data = await r.json();
       if (r.status === 401) {
@@ -118,13 +134,14 @@ function Guestbook() {
       if (!r.ok) return setFormError(data.error || '저장에 실패했습니다.');
       setEntries((prev) => [data, ...prev]);
       setMessage('');
-      setSelectedColor('yellow');
     } catch {
       setFormError('네트워크 오류가 발생했습니다.');
     } finally {
       setSubmitting(false);
     }
   }
+
+  const selectedBg = COLOR_OPTIONS.find((c) => c.id === selectedColor)?.hex;
 
   return (
     <main className="guestbook-page">
@@ -142,69 +159,96 @@ function Guestbook() {
       </div>
 
       <div className="guestbook-body">
-        {/* Write section */}
-        {user ? (
-          <form className="gb-form" onSubmit={handleSubmit}>
-            <div className="gb-form-top">
-              <div className="gb-user-info">
-                <img className="gb-user-avatar" src={user.avatar} alt={user.login} />
-                <span className="gb-user-login">{user.login}</span>
-              </div>
-              <div className="gb-color-picker">
-                {COLOR_OPTIONS.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className={`gb-color-swatch${selectedColor === c.id ? ' selected' : ''}`}
-                    style={{ background: c.hex }}
-                    onClick={() => setSelectedColor(c.id)}
-                    aria-label={c.id}
-                  />
-                ))}
-              </div>
-              <button type="button" className="gb-logout-btn" onClick={() => { window.location.href = '/api/oauth/logout'; }}>
-                로그아웃
+        <form className="gb-form" onSubmit={handleSubmit}>
+          {/* Emoji picker */}
+          <div className="gb-emoji-row">
+            {EMOJI_OPTIONS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                className={`gb-emoji-btn${selectedEmoji === emoji ? ' selected' : ''}`}
+                onClick={() => setSelectedEmoji(emoji)}
+                aria-label={emoji}
+              >
+                {emoji}
               </button>
-            </div>
-            <textarea
-              className="gb-textarea"
-              placeholder="자유롭게 글을 남겨주세요. (최대 500자)"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              maxLength={500}
-              rows={3}
+            ))}
+          </div>
+
+          {/* Color picker */}
+          <div className="gb-color-row">
+            {COLOR_OPTIONS.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                className={`gb-color-swatch${selectedColor === c.id ? ' selected' : ''}`}
+                style={{ background: c.hex }}
+                onClick={() => setSelectedColor(c.id)}
+                aria-label={c.id}
+              />
+            ))}
+          </div>
+
+          {/* Nickname */}
+          <div className="gb-field">
+            <label className="gb-label">Nickname</label>
+            <input
+              className="gb-input"
+              placeholder="Enter your nickname"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              maxLength={30}
               disabled={submitting}
             />
-            <div className="gb-form-bottom">
-              {formError && <p className="gb-form-error">{formError}</p>}
-              <button className="gb-submit-btn" type="submit" disabled={submitting}>
-                {submitting ? '저장 중...' : '남기기'}
+          </div>
+
+          {/* Message */}
+          <textarea
+            className="gb-textarea"
+            placeholder="Leave a message!"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            maxLength={500}
+            rows={4}
+            disabled={submitting}
+            style={{ background: selectedBg }}
+          />
+
+          {/* Bottom */}
+          <div className="gb-form-bottom">
+            {formError && <p className="gb-form-error">{formError}</p>}
+            <div className="gb-form-actions">
+              {!user ? (
+                <>
+                  <a className="gb-oauth-icon-btn gb-google-icon" href="/api/oauth/google-authorize" title="Google로 로그인">
+                    <svg width="18" height="18" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                  </a>
+                  <a className="gb-oauth-icon-btn gb-github-icon" href="/api/oauth/authorize" title="GitHub으로 로그인">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                  </a>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="gb-logout-btn"
+                  onClick={() => { window.location.href = '/api/oauth/logout'; }}
+                >
+                  로그아웃
+                </button>
+              )}
+              <button className="gb-submit-btn" type="submit" disabled={submitting || !user}>
+                {submitting ? '저장 중...' : 'Post 💙'}
               </button>
             </div>
-          </form>
-        ) : (
-          <div className="gb-login-box">
-            {formError && <p className="gb-form-error" style={{ marginBottom: '12px' }}>{formError}</p>}
-            <div className="gb-login-btns">
-              <a className="gb-github-btn" href="/api/oauth/authorize">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
-                </svg>
-                GitHub으로 로그인
-              </a>
-              <a className="gb-google-btn" href="/api/oauth/google-authorize">
-                <svg width="18" height="18" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Google로 로그인
-              </a>
-            </div>
-            <p className="gb-login-desc">로그인하면 방명록을 남길 수 있습니다.</p>
           </div>
-        )}
+        </form>
 
         {/* Entries */}
         {loading && <p className="gb-status">불러오는 중...</p>}
