@@ -3,7 +3,6 @@ import { BrowserRouter } from 'react-router-dom';
 import Router from './routes/Router';
 import Header from './page/_components/header/Header';
 import Footer from './page/_components/footer/Footer';
-import { DashboardProvider } from './context/DashboardContext';
 import { AuthProvider } from './context/AuthContext';
 import usePageView from './hooks/usePageView';
 
@@ -36,9 +35,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <DashboardProvider>
-          <AppInner theme={theme} toggleTheme={toggleTheme} />
-        </DashboardProvider>
+        <AppInner theme={theme} toggleTheme={toggleTheme} />
       </AuthProvider>
     </BrowserRouter>
   );
