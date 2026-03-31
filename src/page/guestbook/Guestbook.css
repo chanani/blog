@@ -197,16 +197,44 @@
   color: var(--text-primary);
 }
 
-/* ── OAuth icon buttons ── */
-.gb-oauth-icon-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+/* ── Login box ── */
+.gb-login-box {
   display: flex;
+  flex-direction: column;
   align-items: center;
+  gap: 16px;
+  padding: 40px 24px;
+  margin-bottom: 48px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.gb-login-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.gb-login-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
   justify-content: center;
-  flex-shrink: 0;
+}
+
+/* ── OAuth buttons ── */
+.gb-oauth-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: inherit;
+  border-radius: var(--radius-md);
   transition: opacity 0.15s;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .gb-oauth-icon-btn:hover {
@@ -214,16 +242,18 @@
 }
 
 .gb-google-icon {
+  color: #3c4043;
   background: #fff;
   border: 1px solid #dadce0;
 }
 
 .gb-github-icon {
-  background: #24292f;
   color: #fff;
+  background: #24292f;
 }
 
 [data-theme='dark'] .gb-google-icon {
+  color: #e8eaed;
   background: #3c4043;
   border-color: #5f6368;
 }
