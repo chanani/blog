@@ -1,21 +1,22 @@
 const GH_GRAPHQL = 'https://api.github.com/graphql';
 const CATEGORY_ID = 'DIC_kwDORI3Ks84C15da';
+const COLOR_NAMES = ['yellow', 'blue', 'green', 'pink', 'purple', 'orange'];
 
 function gqlHeaders(token) {
-  return {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
+  return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 }
 
-const COLOR_NAMES = ['yellow', 'blue', 'green', 'pink', 'purple', 'orange'];
+function parseCookies(cookieStr = '') {
+  return Object.fromEntries(
+    cookieStr.split(';').map((s) => s.trim().split('=')).filter((p) => p[0]).map(([k, ...v]) => [k.trim(), v.join('=')]),
+  );
+}
 
 function parseEntry(node, index) {
   const body = node.body || '';
-  // Format: **nickname** color=yellow\n\nmessage
   const match = body.match(/^\*\*(.+?)\*\*(?:\s+color=(\w+))?\n\n([\s\S]*)$/);
   const nickname = match ? match[1].trim() : (node.author?.login || '익명');
-  const color = (match && match[2] && COLOR_NAMES.includes(match[2])) ? match[2] : COLOR_NAMES[index % COLOR_NAMES.length];
+  const color = (match?.[2] && COLOR_NAMES.includes(match[2])) ? match[2] : COLOR_NAMES[index % COLOR_NAMES.length];
   const message = match ? match[3].trim() : body.trim();
   return {
     id: node.id,
@@ -28,18 +29,8 @@ function parseEntry(node, index) {
 }
 
 async function findDiscussion(owner, token) {
-  const query = `{
-    repository(owner: "${owner}", name: "blog") {
-      discussions(first: 20, categoryId: "${CATEGORY_ID}") {
-        nodes { id title }
-      }
-    }
-  }`;
-  const r = await fetch(GH_GRAPHQL, {
-    method: 'POST',
-    headers: gqlHeaders(token),
-    body: JSON.stringify({ query }),
-  });
+  const query = `{ repository(owner: "${owner}", name: "blog") { discussions(first: 20, categoryId: "${CATEGORY_ID}") { nodes { id title } } } }`;
+  const r = await fetch(GH_GRAPHQL, { method: 'POST', headers: gqlHeaders(token), body: JSON.stringify({ query }) });
   const data = await r.json();
   const nodes = data?.data?.repository?.discussions?.nodes || [];
   return nodes.find((d) => d.title.toLowerCase() === 'guestbook') || null;
@@ -52,22 +43,13 @@ async function fetchComments(owner, token) {
         nodes {
           id title
           comments(last: 100) {
-            nodes {
-              id
-              author { login avatarUrl }
-              body
-              createdAt
-            }
+            nodes { id author { login avatarUrl } body createdAt }
           }
         }
       }
     }
   }`;
-  const r = await fetch(GH_GRAPHQL, {
-    method: 'POST',
-    headers: gqlHeaders(token),
-    body: JSON.stringify({ query }),
-  });
+  const r = await fetch(GH_GRAPHQL, { method: 'POST', headers: gqlHeaders(token), body: JSON.stringify({ query }) });
   const data = await r.json();
   const nodes = data?.data?.repository?.discussions?.nodes || [];
   const disc = nodes.find((d) => d.title.toLowerCase() === 'guestbook');
@@ -78,12 +60,7 @@ async function addComment(discussionId, body, token) {
   const mutation = `
     mutation($discussionId: ID!, $body: String!) {
       addDiscussionComment(input: { discussionId: $discussionId, body: $body }) {
-        comment {
-          id
-          author { login }
-          body
-          createdAt
-        }
+        comment { id author { login avatarUrl } body createdAt }
       }
     }
   `;
@@ -107,18 +84,16 @@ export default async function handler(req, res) {
     return res.json(emptyRes);
   }
 
-  // ── GET ───────────────────────────────────────────────────────
+  // ── GET ─────────────────────────────────────────────────────────
   if (req.method === 'GET') {
     try {
       const page = Math.max(1, parseInt(req.query.page) || 1);
       const perPage = 20;
       const raw = await fetchComments(ghOwner, ghToken);
-      const reversed = [...raw].reverse();
-      const all = reversed.map((node, i) => parseEntry(node, i));
+      const all = [...raw].reverse().map((node, i) => parseEntry(node, i));
       const totalPages = Math.max(1, Math.ceil(all.length / perPage));
       const safePage = Math.min(page, totalPages);
       const entries = all.slice((safePage - 1) * perPage, safePage * perPage);
-
       res.setHeader('Cache-Control', 's-maxage=30, stale-while-revalidate=15');
       return res.json({ entries, page: safePage, totalPages });
     } catch {
@@ -126,30 +101,39 @@ export default async function handler(req, res) {
     }
   }
 
-  // ── POST ──────────────────────────────────────────────────────
+  // ── POST ─────────────────────────────────────────────────────────
   if (req.method === 'POST') {
     try {
-      const { nickname, message } = req.body || {};
+      // Read user token from cookie
+      const cookies = parseCookies(req.headers.cookie);
+      const userToken = cookies.gb_token;
+      if (!userToken) return res.status(401).json({ error: '로그인이 필요합니다.' });
 
-      if (!nickname || typeof nickname !== 'string' || !nickname.trim())
-        return res.status(400).json({ error: '닉네임을 입력해주세요.' });
+      // Get user info from cookie
+      let userLogin = '익명';
+      let userAvatar = '';
+      try {
+        const info = JSON.parse(decodeURIComponent(cookies.gb_user || '{}'));
+        userLogin = info.login || '익명';
+        userAvatar = info.avatar || '';
+      } catch { /* ignore */ }
+
+      const { message, color } = req.body || {};
       if (!message || typeof message !== 'string' || !message.trim())
         return res.status(400).json({ error: '내용을 입력해주세요.' });
-      if (nickname.trim().length > 30)
-        return res.status(400).json({ error: '닉네임은 30자 이하로 입력해주세요.' });
       if (message.trim().length > 500)
         return res.status(400).json({ error: '내용은 500자 이하로 입력해주세요.' });
+
+      const safeColor = (color && COLOR_NAMES.includes(color)) ? color : 'yellow';
 
       const disc = await findDiscussion(ghOwner, ghToken);
       if (!disc) return res.status(500).json({ error: '방명록을 찾을 수 없습니다.' });
 
-      const { color } = req.body || {};
-      const safeColor = (color && COLOR_NAMES.includes(color)) ? color : 'yellow';
-      const body = `**${nickname.trim()}** color=${safeColor}\n\n${message.trim()}`;
-      const comment = await addComment(disc.id, body, ghToken);
+      const body = `**${userLogin}** color=${safeColor}\n\n${message.trim()}`;
+      const comment = await addComment(disc.id, body, userToken);
       if (!comment) return res.status(500).json({ error: '저장에 실패했습니다.' });
 
-      return res.status(201).json(parseEntry(comment, 0));
+      return res.status(201).json({ ...parseEntry(comment, 0), avatar: userAvatar });
     } catch (e) {
       return res.status(500).json({ error: e.message || '서버 오류가 발생했습니다.' });
     }

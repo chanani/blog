@@ -150,9 +150,95 @@
   border-color: var(--accent-primary);
 }
 
+/* ── User info (logged in) ── */
+.gb-user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.gb-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.gb-user-login {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.gb-logout-btn {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  background: none;
+  cursor: pointer;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+
+.gb-logout-btn:hover {
+  color: var(--text-primary);
+}
+
+.gb-form-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
 .gb-form-error {
   font-size: 0.8rem;
   color: #ef4444;
+  flex: 1;
+}
+
+/* ── Login box (not logged in) ── */
+.gb-login-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 36px 24px;
+  margin-bottom: 48px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.gb-github-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  background: #24292f;
+  border-radius: var(--radius-md);
+  transition: background 0.15s;
+}
+
+.gb-github-btn:hover {
+  background: #1a1f24;
+}
+
+[data-theme='dark'] .gb-github-btn {
+  background: #444c56;
+}
+
+[data-theme='dark'] .gb-github-btn:hover {
+  background: #545d68;
+}
+
+.gb-login-desc {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
 }
 
 /* ── Status ── */
