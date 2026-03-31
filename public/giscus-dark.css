@@ -101,9 +101,13 @@ a[href*="giscus.app"] {
   display: none !important;
 }
 
-/* Hide header (count + sort) and comment list, keep write form */
-.gsc-header,
-.gsc-timeline {
+/* Hide header (count + sort) */
+.gsc-header {
+  display: none !important;
+}
+
+/* Hide individual comment cards, but keep write form inside timeline */
+.gsc-timeline .gsc-comment {
   display: none !important;
 }
 

@@ -105,7 +105,7 @@ function Guestbook() {
             inputPosition="top"
             theme={import.meta.env.DEV
               ? (giscusTheme === 'dark' ? 'dark_dimmed' : 'light')
-              : `https://chanhan.blog/giscus-${giscusTheme}.css?v=8`}
+              : `https://chanhan.blog/giscus-${giscusTheme}.css?v=9`}
             lang="ko"
           />
         </div>
