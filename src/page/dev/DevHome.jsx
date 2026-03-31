@@ -178,7 +178,7 @@ function DevHome() {
   return (
     <main className="blog-page">
       <Helmet>
-        <title>blog — chanani.</title>
+        <title>blog — chanani</title>
         <meta name="description" content="차나니의 개발 블로그" />
         <link rel="canonical" href="https://chanhan.blog/posts" />
       </Helmet>
@@ -225,8 +225,10 @@ function DevHome() {
         <div className="blog-content">
           {/* Loading */}
           {loading && (
-            <div className="blog-status">
-              <p>불러오는 중...</p>
+            <div className="page-loading">
+              <img src="/profile.jpg" alt="이찬한" className="loading-avatar" />
+              <p className="loading-text">게시글을 불러오는 중...</p>
+              <span className="loading-dots"><span className="dot" /><span className="dot" /><span className="dot" /></span>
             </div>
           )}
 

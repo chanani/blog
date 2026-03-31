@@ -227,6 +227,7 @@
 
 /* Post Item */
 .post-list > div {
+  width: 100%;
   border-top: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   transition: background 0.25s ease;
@@ -450,6 +451,7 @@
   }
 
   .blog-content {
+    width: 100%;
     padding-left: 0;
   }
 }
