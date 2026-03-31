@@ -216,7 +216,13 @@ function Guestbook() {
         )}
 
         {/* Entries */}
-        {loading && <p className="gb-status">불러오는 중...</p>}
+        {loading && (
+          <div className="gb-status">
+            <span className="loading-dots">
+              <span className="dot" /><span className="dot" /><span className="dot" />
+            </span>
+          </div>
+        )}
         {error && <p className="gb-status gb-status-error">{error}</p>}
         {!loading && !error && entries.length === 0 && (
           <p className="gb-status">아직 남긴 글이 없습니다. 첫 번째 글을 남겨보세요!</p>
