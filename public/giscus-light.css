@@ -111,8 +111,9 @@ a[href*="giscus.app"] {
   max-width: 100% !important;
 }
 
-/* Hide everything in .gsc-main except the write form */
-.gsc-main > *:not(.gsc-comment-box) {
+/* Hide header (count + sort) and comment list, keep write form */
+.gsc-header,
+.gsc-timeline {
   display: none !important;
 }
 
