@@ -14,14 +14,15 @@ function parseCookies(cookieStr = '') {
 
 function parseEntry(node, index) {
   const body = node.body || '';
-  const match = body.match(/^\*\*(.+?)\*\*(?:\s+color=(\w+))?\n\n([\s\S]*)$/);
+  const match = body.match(/^\*\*(.+?)\*\*(?:\s+color=(\w+))?\n(?:avatar=([^\n]+)\n)?\n([\s\S]*)$/);
   const nickname = match ? match[1].trim() : (node.author?.login || '익명');
   const color = (match?.[2] && COLOR_NAMES.includes(match[2])) ? match[2] : COLOR_NAMES[index % COLOR_NAMES.length];
-  const message = match ? match[3].trim() : body.trim();
+  const storedAvatar = match?.[3]?.trim() || '';
+  const message = match ? match[4].trim() : body.trim();
   return {
     id: node.id,
     nickname,
-    avatar: node.author?.avatarUrl || '',
+    avatar: storedAvatar || node.author?.avatarUrl || '',
     color,
     message,
     createdAt: node.createdAt,
@@ -148,7 +149,8 @@ export default async function handler(req, res) {
       const disc = await findDiscussion(ghOwner, ghToken);
       if (!disc) return res.status(500).json({ error: '방명록을 찾을 수 없습니다.' });
 
-      const body = `**${userLogin}** color=${safeColor}\n\n${message.trim()}`;
+      const avatarLine = userAvatar ? `avatar=${userAvatar}\n` : '';
+      const body = `**${userLogin}** color=${safeColor}\n${avatarLine}\n${message.trim()}`;
       const comment = await addComment(disc.id, body, postToken);
       if (!comment) return res.status(500).json({ error: '저장에 실패했습니다.' });
 
