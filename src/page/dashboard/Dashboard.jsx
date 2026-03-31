@@ -28,9 +28,9 @@ function Dashboard() {
       <div className="hero-inner">
         <div className="hero-text">
           <h1>
-            <motion.span className="hero-line" {...fadeUp(0)}>Write code.</motion.span>
-            <motion.span className="hero-line" {...fadeUp(0.18)}>Read books.</motion.span>
-            <motion.span className="hero-line" {...fadeUp(0.36)}>Stay curious.</motion.span>
+            <motion.span className="hero-line" {...fadeUp(0)}>Don't find</motion.span>
+            <motion.span className="hero-line" {...fadeUp(0.18)}>the fault,</motion.span>
+            <motion.span className="hero-line" {...fadeUp(0.36)}>find the remedy.</motion.span>
           </h1>
         </div>
 

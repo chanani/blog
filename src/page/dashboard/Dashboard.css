@@ -3,9 +3,9 @@
   height: calc(100vh - var(--header-height));
   background: var(--accent-primary);
   display: flex;
-  align-items: flex-end;
+  align-items: stretch;
   justify-content: center;
-  padding: 40px 0 52px;
+  padding: 52px 0 40px;
   position: relative;
   overflow: hidden;
 }
@@ -15,7 +15,7 @@
   width: 100%;
   padding: 0 48px;
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
 }
 
@@ -30,7 +30,7 @@
 
 .hero-line {
   display: block;
-  font-size: clamp(56px, 9vw, 136px);
+  font-size: clamp(44px, 7vw, 108px);
   font-weight: 900;
   color: #ffffff;
   line-height: 1.05;
@@ -44,6 +44,7 @@
   text-align: right;
   padding-bottom: 6px;
   flex-shrink: 0;
+  align-self: flex-end;
 }
 
 .hero-info-item {
