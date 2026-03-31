@@ -47,7 +47,7 @@ function Header({ theme, toggleTheme }) {
             ))}
           </nav>
           <div className="header-actions">
-            <button className="header-icon-btn" onClick={toggleTheme} aria-label="테마 전환">
+            <button className="header-icon-btn" onClick={toggleTheme} aria-label="테마 전환" style={{ display: 'none' }}>
               {theme === 'light' ? <FiMoon size={15} /> : <FiSun size={15} />}
             </button>
             <button
@@ -74,7 +74,7 @@ function Header({ theme, toggleTheme }) {
             </Link>
           ))}
         </nav>
-        <button className="mobile-theme-btn" onClick={toggleTheme}>
+        <button className="mobile-theme-btn" onClick={toggleTheme} style={{ display: 'none' }}>
           {theme === 'light' ? <FiMoon size={14} /> : <FiSun size={14} />}
           {theme === 'light' ? 'dark mode' : 'light mode'}
         </button>
