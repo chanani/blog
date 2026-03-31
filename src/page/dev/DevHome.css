@@ -238,12 +238,14 @@
   display: flex;
   gap: 20px;
   align-items: flex-start;
-  padding: 20px 0;
-  transition: opacity 0.15s;
+  padding: 20px 12px;
+  border-radius: var(--radius-md);
+  transition: background 0.25s ease, transform 0.25s ease;
 }
 
 .post-item:hover {
-  opacity: 0.75;
+  background: var(--accent-light);
+  transform: translateX(4px);
 }
 
 .post-thumb {
