@@ -227,6 +227,10 @@
 
 /* Post Item */
 .post-list > div {
+  border-top: 1px solid var(--border-color);
+}
+
+.post-list > div:first-child {
   border-top: none;
 }
 
@@ -235,14 +239,13 @@
   gap: 20px;
   align-items: flex-start;
   padding: 20px 12px;
-  border-radius: var(--radius-md);
-  border-bottom: 1px solid var(--border-color);
-  transition: background 0.25s ease, border-color 0.25s ease;
+  margin: 0 -12px;
+  transition: background 0.25s ease, border-radius 0.25s ease;
 }
 
 .post-item:hover {
   background: var(--accent-light);
-  border-bottom-color: var(--accent-primary);
+  border-radius: var(--radius-md);
 }
 
 .post-thumb {
