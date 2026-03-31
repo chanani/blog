@@ -27,8 +27,18 @@ function formatDate(iso) {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function GuestbookCard({ entry }) {
+function GuestbookCard({ entry, user, onDelete }) {
   const bg = COLOR_OPTIONS.find((c) => c.id === entry.color)?.hex || '#fef9c3';
+  const isOwner = user && user.login === entry.nickname;
+
+  async function handleDelete() {
+    if (!window.confirm('삭제하시겠습니까?')) return;
+    try {
+      const r = await fetch(`/api/guestbook?id=${encodeURIComponent(entry.id)}`, { method: 'DELETE' });
+      if (r.ok) onDelete(entry.id);
+    } catch { /* ignore */ }
+  }
+
   return (
     <motion.div
       className="gb-card"
@@ -43,7 +53,12 @@ function GuestbookCard({ entry }) {
           {entry.avatar && <img className="gb-card-avatar" src={entry.avatar} alt={entry.nickname} />}
           <span className="gb-card-nickname">{entry.nickname}</span>
         </div>
-        <span className="gb-card-date">{formatDate(entry.createdAt)}</span>
+        <div className="gb-card-footer-right">
+          <span className="gb-card-date">{formatDate(entry.createdAt)}</span>
+          {isOwner && (
+            <button className="gb-card-delete-btn" onClick={handleDelete} aria-label="삭제">✕</button>
+          )}
+        </div>
       </div>
     </motion.div>
   );
@@ -200,7 +215,12 @@ function Guestbook() {
         {!loading && entries.length > 0 && (
           <div className="gb-grid">
             {entries.map((entry) => (
-              <GuestbookCard key={entry.id} entry={entry} />
+              <GuestbookCard
+                key={entry.id}
+                entry={entry}
+                user={user}
+                onDelete={(id) => setEntries((prev) => prev.filter((e) => e.id !== id))}
+              />
             ))}
           </div>
         )}

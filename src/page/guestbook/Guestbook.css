@@ -342,10 +342,32 @@
   color: #1a1a2e;
 }
 
+.gb-card-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .gb-card-date {
   font-size: 0.72rem;
   color: rgba(26, 26, 46, 0.5);
   white-space: nowrap;
+}
+
+.gb-card-delete-btn {
+  font-size: 0.7rem;
+  color: rgba(26, 26, 46, 0.35);
+  background: none;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.gb-card-delete-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
 }
 
 /* ── Responsive ── */

@@ -56,6 +56,23 @@ async function fetchComments(owner, token) {
   return disc?.comments?.nodes || [];
 }
 
+async function deleteComment(commentId, token) {
+  const mutation = `
+    mutation($id: ID!) {
+      deleteDiscussionComment(input: { id: $id }) {
+        comment { id }
+      }
+    }
+  `;
+  const r = await fetch(GH_GRAPHQL, {
+    method: 'POST',
+    headers: gqlHeaders(token),
+    body: JSON.stringify({ query: mutation, variables: { id: commentId } }),
+  });
+  const data = await r.json();
+  if (data.errors) throw new Error(data.errors[0]?.message || 'GraphQL error');
+}
+
 async function addComment(discussionId, body, token) {
   const mutation = `
     mutation($discussionId: ID!, $body: String!) {
@@ -80,7 +97,7 @@ export default async function handler(req, res) {
   const emptyRes = { entries: [], totalPages: 0 };
 
   if (!ghToken || !ghOwner) {
-    if (req.method === 'POST') return res.status(500).json({ error: 'Config error' });
+    if (req.method === 'POST' || req.method === 'DELETE') return res.status(500).json({ error: 'Config error' });
     return res.json(emptyRes);
   }
 
@@ -138,6 +155,25 @@ export default async function handler(req, res) {
       return res.status(201).json({ ...parseEntry(comment, 0), avatar: userAvatar });
     } catch (e) {
       return res.status(500).json({ error: e.message || '서버 오류가 발생했습니다.' });
+    }
+  }
+
+  // ── DELETE ───────────────────────────────────────────────────────
+  if (req.method === 'DELETE') {
+    try {
+      const cookies = parseCookies(req.headers.cookie);
+      const userToken = cookies.gb_token;
+      if (!userToken) return res.status(401).json({ error: '로그인이 필요합니다.' });
+
+      const commentId = req.query.id;
+      if (!commentId) return res.status(400).json({ error: 'id가 필요합니다.' });
+
+      // Google users use admin token, GitHub users use their own token
+      const deleteToken = userToken === 'google' ? ghToken : userToken;
+      await deleteComment(commentId, deleteToken);
+      return res.status(200).json({ ok: true });
+    } catch (e) {
+      return res.status(500).json({ error: e.message || '삭제에 실패했습니다.' });
     }
   }
 
