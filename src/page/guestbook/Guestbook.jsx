@@ -147,13 +147,6 @@ function Guestbook() {
         <link rel="canonical" href="https://chanhan.blog/guestbook" />
       </Helmet>
 
-      <div className="guestbook-header">
-        <div className="guestbook-header-inner">
-          <h1 className="guestbook-title">Guestbook</h1>
-          <p className="guestbook-desc">남기고 싶은 말이 있다면 편하게 남겨주세요.</p>
-        </div>
-      </div>
-
       <div className="guestbook-body">
         {user ? (
           <form className="gb-form" onSubmit={handleSubmit}>
