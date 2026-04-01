@@ -139,9 +139,12 @@
 }
 
 .star-full,
-.star-half,
+.star-half {
+  color: #f59e0b;
+}
+
 .star-empty {
-  display: block;
+  color: var(--border-color);
 }
 
 .book-tags {

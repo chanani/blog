@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiChevronRight } from 'react-icons/fi';
+import { BsStarFill, BsStarHalf, BsStar } from 'react-icons/bs';
 import './BookCard.css';
 
 function BookCard({ book, index }) {
@@ -10,27 +11,9 @@ function BookCard({ book, index }) {
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => {
       const fill = rating - i >= 1 ? 'full' : rating - i >= 0.5 ? 'half' : 'empty';
-      return (
-        <svg key={i} width="12" height="12" viewBox="0 0 24 24" className={`star-${fill}`}>
-          <defs>
-            <clipPath id={`half-${i}`}>
-              <rect x="0" y="0" width="12" height="24" />
-            </clipPath>
-          </defs>
-          {fill === 'half' && (
-            <>
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" clipPath={`url(#half-${i})`} fill="var(--yellow)" stroke="var(--yellow)" strokeWidth="1" />
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="none" stroke="var(--yellow)" strokeWidth="1" />
-            </>
-          )}
-          {fill === 'full' && (
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="var(--yellow)" stroke="var(--yellow)" strokeWidth="1" />
-          )}
-          {fill === 'empty' && (
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="none" stroke="var(--border-color)" strokeWidth="1" />
-          )}
-        </svg>
-      );
+      if (fill === 'full') return <BsStarFill key={i} size={11} className="star-full" />;
+      if (fill === 'half') return <BsStarHalf key={i} size={11} className="star-half" />;
+      return <BsStar key={i} size={11} className="star-empty" />;
     });
   };
 

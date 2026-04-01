@@ -137,6 +137,15 @@
   font-weight: 500;
 }
 
+.info-rating .star-full,
+.info-rating .star-half {
+  color: #f59e0b;
+}
+
+.info-rating .star-empty {
+  color: var(--border-color);
+}
+
 .info-rating {
   display: flex;
   gap: 2px;
