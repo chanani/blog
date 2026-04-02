@@ -63,8 +63,9 @@ function formatDate(iso) {
 }
 
 function CardAuthor({ entry }) {
-  return (
-    <div className="gb-card-header">
+  const isGithub = entry.avatar?.includes('avatars.githubusercontent.com');
+  const inner = (
+    <>
       <div className="gb-card-avatar-wrap">
         {entry.emoji
           ? <span className="gb-card-emoji">{entry.emoji}</span>
@@ -77,6 +78,25 @@ function CardAuthor({ entry }) {
         <span className="gb-card-nickname">{entry.nickname}</span>
         <span className="gb-card-date">{formatDate(entry.createdAt)}</span>
       </div>
+    </>
+  );
+
+  return (
+    <div className="gb-card-header">
+      {isGithub ? (
+        <a
+          className="gb-card-author-link"
+          href={`https://github.com/${entry.nickname}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          aria-label={`${entry.nickname} GitHub`}
+        >
+          {inner}
+        </a>
+      ) : (
+        <div className="gb-card-author-link">{inner}</div>
+      )}
     </div>
   );
 }
