@@ -217,7 +217,7 @@ function DevHome() {
                   className={`sidebar-cat-btn${selectedCategory === cat ? ' active' : ''}`}
                   onClick={() => { setCategory(cat); setCurrentPage(1); }}
                 >
-                  <span>{cat === 'all' ? 'All' : cat}</span>
+                  <span>{cat === 'all' ? t('reading.all') : cat}</span>
                   <span className="sidebar-cat-count">
                     {cat === 'all' ? posts.length : posts.filter((p) => p.category === cat).length}
                   </span>
