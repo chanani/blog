@@ -210,8 +210,15 @@ function Home() {
       <Helmet>
         <title>책방 - 차나니의 블로그</title>
         <meta name="description" content="차나니의 책방 - 개발 서적 독서 기록과 정리. 클린코드, 오브젝트, 리팩터링 등 개발 서적을 읽고 챕터별로 정리합니다." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://chanhan.blog/books" />
         <meta property="og:title" content="책방 - 차나니의 블로그" />
-        <meta property="og:description" content="개발 서적 독서 기록과 정리" />
+        <meta property="og:description" content="개발 서적 독서 기록과 정리. 클린코드, 오브젝트, 리팩터링 등 개발 서적을 챕터별로 정리합니다." />
+        <meta property="og:image" content="https://chanhan.blog/profile.png" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="책방 - 차나니의 블로그" />
+        <meta name="twitter:description" content="개발 서적 독서 기록과 정리. 클린코드, 오브젝트, 리팩터링 등 개발 서적을 챕터별로 정리합니다." />
+        <meta name="twitter:image" content="https://chanhan.blog/profile.png" />
         <link rel="canonical" href="https://chanhan.blog/books" />
       </Helmet>
       <section className="home-content">

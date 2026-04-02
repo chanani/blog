@@ -128,10 +128,25 @@ function Book() {
       <Helmet>
         <title>{currentBook.title} - 차나니의 블로그</title>
         <meta name="description" content={`${currentBook.title} - ${currentBook.author || ''} 독서 기록과 챕터별 정리`} />
+        <meta property="og:type" content="book" />
+        <meta property="og:url" content={`https://chanhan.blog/book/${bookSlug}`} />
         <meta property="og:title" content={`${currentBook.title} - 차나니의 블로그`} />
-        <meta property="og:description" content={`${currentBook.title} 독서 기록`} />
-        {currentBook.cover && <meta property="og:image" content={currentBook.cover} />}
+        <meta property="og:description" content={`${currentBook.title}${currentBook.author ? ` - ${currentBook.author}` : ''} 독서 기록과 챕터별 정리`} />
+        <meta property="og:image" content={currentBook.cover || 'https://chanhan.blog/profile.png'} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${currentBook.title} - 차나니의 블로그`} />
+        <meta name="twitter:description" content={`${currentBook.title}${currentBook.author ? ` - ${currentBook.author}` : ''} 독서 기록과 챕터별 정리`} />
+        <meta name="twitter:image" content={currentBook.cover || 'https://chanhan.blog/profile.png'} />
         <link rel="canonical" href={`https://chanhan.blog/book/${bookSlug}`} />
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Book',
+          name: currentBook.title,
+          author: currentBook.author ? { '@type': 'Person', name: currentBook.author } : undefined,
+          image: currentBook.cover || 'https://chanhan.blog/profile.png',
+          url: `https://chanhan.blog/book/${bookSlug}`,
+          review: { '@type': 'Review', author: { '@type': 'Person', name: '이찬한', url: 'https://chanhan.blog/about' } },
+        })}</script>
       </Helmet>
       <motion.div
         className="book-wrap"

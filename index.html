@@ -20,24 +20,43 @@
     <!-- SEO -->
     <meta name="description" content="차나니의 블로그 - 개발 기술 블로그 & 독서 기록. Java, Spring, DevOps 등 개발 기술과 서적 독서 기록을 정리합니다." />
     <meta name="author" content="이찬한" />
-    <meta name="keywords" content="차나니의 블로그, 개발 블로그, 기술 블로그, Java, Spring, DevOps, 개발 서적, 독서 기록" />
+    <meta name="keywords" content="차나니의 블로그, 개발 블로그, 기술 블로그, Java, Spring, DevOps, 개발 서적, 독서 기록, 이찬한, chanani" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <link rel="canonical" href="https://chanhan.blog/" />
 
-    <!-- Structured Data -->
+    <!-- GEO: AI 크롤러 안내 -->
+    <link rel="llms" href="https://chanhan.blog/llms.txt" />
+
+    <!-- Structured Data: WebSite + Person -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "차나니의 블로그",
-      "alternateName": "chanani blog",
+      "alternateName": ["chanani blog", "chanani", "차나니"],
       "url": "https://chanhan.blog",
       "description": "개발 기술 블로그 & 독서 기록. Java, Spring, DevOps 등 개발 기술과 서적 독서 기록을 정리합니다.",
+      "inLanguage": "ko-KR",
       "author": {
         "@type": "Person",
         "name": "이찬한",
-        "alternateName": "차나니"
+        "alternateName": "차나니",
+        "url": "https://chanhan.blog/about",
+        "sameAs": [
+          "https://github.com/chanani",
+          "https://chanhan.blog"
+        ],
+        "jobTitle": "Backend Developer",
+        "knowsAbout": ["Java", "Spring Boot", "DevOps", "Backend Development"]
       },
-      "inLanguage": "ko-KR"
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://chanhan.blog/posts?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
     }
     </script>
 
@@ -62,8 +81,15 @@
   <body>
     <div id="root"></div>
     <noscript>
-      <h1>차나니의 블로그</h1>
-      <p>개발 기술 블로그 & 독서 기록 - Java, Spring, DevOps 등 개발 기술과 서적 독서 기록을 정리합니다.</p>
+      <h1>차나니의 블로그 — chanani</h1>
+      <p>백엔드 개발자 이찬한(차나니)의 기술 블로그입니다.</p>
+      <p>Java, Spring Boot, DevOps 등 백엔드 개발 기술 포스트와 클린코드, 오브젝트 등 개발 서적 독서 기록을 챕터별로 정리합니다.</p>
+      <ul>
+        <li><a href="https://chanhan.blog/posts">블로그 — 개발 기술 포스트</a></li>
+        <li><a href="https://chanhan.blog/books">책방 — 개발 서적 독서 기록</a></li>
+        <li><a href="https://chanhan.blog/about">소개 — 백엔드 개발자 이찬한</a></li>
+        <li><a href="https://chanhan.blog/guestbook">방명록</a></li>
+      </ul>
       <p>이 사이트는 JavaScript가 필요합니다.</p>
     </noscript>
     <script type="module" src="/src/main.jsx"></script>

@@ -331,10 +331,32 @@ function DevPost() {
       <Helmet>
         <title>{currentPost.title} - 차나니의 블로그</title>
         <meta name="description" content={currentPost.description || `${currentPost.title} - 차나니의 블로그`} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={`https://chanhan.blog/post/${category}/${slug}`} />
         <meta property="og:title" content={`${currentPost.title} - 차나니의 블로그`} />
         <meta property="og:description" content={currentPost.description || currentPost.title} />
-        {currentPost.cover && <meta property="og:image" content={currentPost.cover} />}
+        <meta property="og:image" content={currentPost.cover || 'https://chanhan.blog/profile.png'} />
+        <meta property="article:author" content="이찬한" />
+        {currentPost.date && <meta property="article:published_time" content={currentPost.date} />}
+        {currentPost.updatedAt && <meta property="article:modified_time" content={currentPost.updatedAt} />}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${currentPost.title} - 차나니의 블로그`} />
+        <meta name="twitter:description" content={currentPost.description || currentPost.title} />
+        <meta name="twitter:image" content={currentPost.cover || 'https://chanhan.blog/profile.png'} />
         <link rel="canonical" href={`https://chanhan.blog/post/${category}/${slug}`} />
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'BlogPosting',
+          headline: currentPost.title,
+          description: currentPost.description || currentPost.title,
+          image: currentPost.cover || 'https://chanhan.blog/profile.png',
+          url: `https://chanhan.blog/post/${category}/${slug}`,
+          datePublished: currentPost.date,
+          dateModified: currentPost.updatedAt || currentPost.date,
+          author: { '@type': 'Person', name: '이찬한', alternateName: '차나니', url: 'https://chanhan.blog/about' },
+          publisher: { '@type': 'Person', name: '이찬한', url: 'https://chanhan.blog' },
+          mainEntityOfPage: { '@type': 'WebPage', '@id': `https://chanhan.blog/post/${category}/${slug}` },
+        })}</script>
       </Helmet>
       <div className="read-progress-bar" style={{ width: `${readProgress}%` }} />
 

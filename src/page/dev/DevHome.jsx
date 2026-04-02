@@ -185,7 +185,16 @@ function DevHome() {
     <main className="blog-page">
       <Helmet>
         <title>blog — chanani</title>
-        <meta name="description" content="차나니의 개발 블로그" />
+        <meta name="description" content="차나니의 개발 블로그 - Java, Spring, DevOps 등 백엔드 개발 기술 포스트를 기록합니다." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://chanhan.blog/posts" />
+        <meta property="og:title" content="blog — chanani" />
+        <meta property="og:description" content="차나니의 개발 블로그 - Java, Spring, DevOps 등 백엔드 개발 기술 포스트를 기록합니다." />
+        <meta property="og:image" content="https://chanhan.blog/profile.png" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="blog — chanani" />
+        <meta name="twitter:description" content="차나니의 개발 블로그 - Java, Spring, DevOps 등 백엔드 개발 기술 포스트를 기록합니다." />
+        <meta name="twitter:image" content="https://chanhan.blog/profile.png" />
         <link rel="canonical" href="https://chanhan.blog/posts" />
       </Helmet>
 

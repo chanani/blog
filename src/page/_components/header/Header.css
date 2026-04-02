@@ -226,7 +226,7 @@ body.hero-page .footer {
   align-items: center;
   gap: 3px;
   padding: 4px 7px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--accent-primary);
   border-radius: 5px;
   background: transparent;
   cursor: pointer;
@@ -235,32 +235,32 @@ body.hero-page .footer {
 
 .lang-trigger:hover,
 .lang-trigger.open {
-  border-color: var(--text-tertiary);
+  border-color: var(--accent-primary);
   background: var(--bg-secondary);
 }
 
 .lang-trigger-short {
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--text-secondary);
+  color: var(--accent-primary);
   letter-spacing: 0.04em;
   transition: color 0.15s;
 }
 
 .lang-trigger:hover .lang-trigger-short,
 .lang-trigger.open .lang-trigger-short {
-  color: var(--text-primary);
+  color: var(--accent-primary);
 }
 
 .lang-chevron {
-  color: var(--text-tertiary);
+  color: var(--accent-primary);
   transition: transform 0.2s ease, color 0.15s;
   flex-shrink: 0;
 }
 
 .lang-chevron.open {
   transform: rotate(180deg);
-  color: var(--text-secondary);
+  color: var(--accent-primary);
 }
 
 .lang-menu {

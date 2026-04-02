@@ -35,8 +35,15 @@ function About() {
       <Helmet>
         <title>소개 — chanani</title>
         <meta name="description" content="주도적으로 문제를 발견하고 해결하는 백엔드 개발자 이찬한입니다." />
+        <meta property="og:type" content="profile" />
+        <meta property="og:url" content="https://chanhan.blog/about" />
         <meta property="og:title" content="소개 — chanani" />
         <meta property="og:description" content="주도적으로 문제를 발견하고 해결하는 백엔드 개발자 이찬한입니다." />
+        <meta property="og:image" content="https://chanhan.blog/profile.png" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="소개 — chanani" />
+        <meta name="twitter:description" content="주도적으로 문제를 발견하고 해결하는 백엔드 개발자 이찬한입니다." />
+        <meta name="twitter:image" content="https://chanhan.blog/profile.png" />
         <link rel="canonical" href="https://chanhan.blog/about" />
       </Helmet>
 

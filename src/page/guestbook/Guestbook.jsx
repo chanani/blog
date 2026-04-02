@@ -258,6 +258,15 @@ function Guestbook() {
       <Helmet>
         <title>guestbook — chanani</title>
         <meta name="description" content="chanani의 방명록입니다. 자유롭게 글을 남겨주세요." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://chanhan.blog/guestbook" />
+        <meta property="og:title" content="guestbook — chanani" />
+        <meta property="og:description" content="chanani의 방명록입니다. 자유롭게 글을 남겨주세요." />
+        <meta property="og:image" content="https://chanhan.blog/profile.png" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="guestbook — chanani" />
+        <meta name="twitter:description" content="chanani의 방명록입니다. 자유롭게 글을 남겨주세요." />
+        <meta name="twitter:image" content="https://chanhan.blog/profile.png" />
         <link rel="canonical" href="https://chanhan.blog/guestbook" />
       </Helmet>
 

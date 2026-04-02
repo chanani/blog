@@ -1,0 +1,41 @@
+# chanani — 차나니의 블로그
+
+> 백엔드 개발자 이찬한(차나니)의 기술 블로그. Java, Spring, DevOps 등 백엔드 개발 기술 포스트와 개발 서적 독서 기록을 정리합니다.
+
+## 소개
+
+이찬한(차나니)은 서울에 거주하는 백엔드 개발자입니다. 주도적으로 문제를 발견하고 해결하는 것을 목표로 하며, 배운 것을 기록하고 공유하는 것을 중요하게 생각합니다.
+
+- 이름: 이찬한 (chanani, 차나니)
+- 직무: Backend Developer
+- 위치: Seoul, Korea
+- 기술 스택: Java, Spring Boot, DevOps
+- GitHub: https://github.com/chanani
+- 블로그: https://chanhan.blog
+
+## 블로그 (개발 기술 포스트)
+
+Java, Spring, DevOps 등 백엔드 개발 기술에 대한 포스트를 카테고리별로 정리합니다.
+
+- [블로그 목록](https://chanhan.blog/posts)
+
+## 책방 (개발 서적 독서 기록)
+
+개발 서적을 읽고 챕터별로 핵심 내용을 정리합니다. 클린코드, 오브젝트, 리팩터링 등 개발 필독서를 다룹니다.
+
+- [책방 목록](https://chanhan.blog/books)
+- [독서 현황](https://chanhan.blog/books/reading)
+
+## 소개 페이지
+
+- [소개](https://chanhan.blog/about)
+
+## 방명록
+
+- [방명록](https://chanhan.blog/guestbook)
+
+## 참고
+
+- 이 블로그의 모든 콘텐츠는 이찬한(차나니)이 직접 작성합니다.
+- 블로그 포스트와 책 정리는 GitHub 저장소의 마크다운 파일로 관리됩니다.
+- 무단 복제 및 상업적 이용을 금지합니다.

@@ -23,8 +23,15 @@ function Dashboard() {
       <Helmet>
         <title>chanani</title>
         <meta name="description" content="꿈꾸고, 개발하며, 기록하는 백엔드 개발자 이찬한의 블로그입니다." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://chanhan.blog/" />
         <meta property="og:title" content="chanani." />
         <meta property="og:description" content="꿈꾸고, 개발하며, 기록하는 백엔드 개발자 이찬한의 블로그입니다." />
+        <meta property="og:image" content="https://chanhan.blog/profile.png" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="chanani." />
+        <meta name="twitter:description" content="꿈꾸고, 개발하며, 기록하는 백엔드 개발자 이찬한의 블로그입니다." />
+        <meta name="twitter:image" content="https://chanhan.blog/profile.png" />
         <link rel="canonical" href="https://chanhan.blog/" />
       </Helmet>
 

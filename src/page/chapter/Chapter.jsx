@@ -708,9 +708,28 @@ function Chapter() {
       <Helmet>
         <title>{currentChapter.title} - 차나니의 블로그</title>
         <meta name="description" content={`${currentChapter.bookTitle} - ${currentChapter.title} 독서 정리`} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={`https://chanhan.blog/book/${bookSlug}/read/${chapterPath}`} />
         <meta property="og:title" content={`${currentChapter.title} - 차나니의 블로그`} />
-        <meta property="og:description" content={`${currentChapter.bookTitle} - ${currentChapter.title}`} />
+        <meta property="og:description" content={`${currentChapter.bookTitle} - ${currentChapter.title} 독서 정리`} />
+        <meta property="og:image" content={currentChapter.cover || 'https://chanhan.blog/profile.png'} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${currentChapter.title} - 차나니의 블로그`} />
+        <meta name="twitter:description" content={`${currentChapter.bookTitle} - ${currentChapter.title} 독서 정리`} />
+        <meta name="twitter:image" content={currentChapter.cover || 'https://chanhan.blog/profile.png'} />
         <link rel="canonical" href={`https://chanhan.blog/book/${bookSlug}/read/${chapterPath}`} />
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Article',
+          headline: currentChapter.title,
+          description: `${currentChapter.bookTitle} - ${currentChapter.title} 독서 정리`,
+          image: currentChapter.cover || 'https://chanhan.blog/profile.png',
+          url: `https://chanhan.blog/book/${bookSlug}/read/${chapterPath}`,
+          datePublished: currentChapter.createdAt,
+          dateModified: currentChapter.updatedAt || currentChapter.createdAt,
+          author: { '@type': 'Person', name: '이찬한', alternateName: '차나니', url: 'https://chanhan.blog/about' },
+          isPartOf: { '@type': 'Book', name: currentChapter.bookTitle, url: `https://chanhan.blog/book/${bookSlug}` },
+        })}</script>
       </Helmet>
       <div className="read-progress-bar" style={{ width: `${readProgress}%` }} />
 
