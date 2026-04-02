@@ -52,10 +52,10 @@ function LangDropdown({ lang, onChange }) {
 }
 
 const NAV_PATHS = [
+  { path: 'about', labelKey: 'nav.about' },
   { path: 'posts', labelKey: 'nav.blog' },
   { path: 'books', labelKey: 'nav.books' },
   { path: 'guestbook', labelKey: 'nav.guestbook' },
-  { path: 'about', labelKey: 'nav.about' },
 ];
 
 function Header({ theme, toggleTheme }) {
