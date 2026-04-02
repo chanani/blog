@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Router from './routes/Router';
 import Header from './page/_components/header/Header';
 import Footer from './page/_components/footer/Footer';
@@ -7,13 +8,27 @@ import { AuthProvider } from './context/AuthContext';
 import usePageView from './hooks/usePageView';
 
 function AppInner({ theme, toggleTheme }) {
+  const { i18n } = useTranslation();
+  const [transitioning, setTransitioning] = useState(false);
+  const prevLang = useRef(i18n.language);
   usePageView();
+
+  useEffect(() => {
+    if (prevLang.current !== i18n.language) {
+      prevLang.current = i18n.language;
+      setTransitioning(true);
+      const timer = setTimeout(() => setTransitioning(false), 380);
+      return () => clearTimeout(timer);
+    }
+  }, [i18n.language]);
 
   return (
     <div className="app">
       <Header theme={theme} toggleTheme={toggleTheme} />
-      <Router />
-      <Footer />
+      <div className={transitioning ? 'lang-transition' : undefined} style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <Router />
+        <Footer />
+      </div>
     </div>
   );
 }

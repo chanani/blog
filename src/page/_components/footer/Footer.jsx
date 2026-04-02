@@ -28,7 +28,7 @@ function Footer() {
           className={`footer-copy${authenticated ? ' footer-copy--admin' : ''}`}
           onClick={handleSecretClick}
         >
-          © 2026. chanani. all rights reserved.
+          © 2026. chanani all rights reserved.
         </p>
         <div className="footer-links">
           <a href="https://github.com/chanani" target="_blank" rel="noopener noreferrer" aria-label="GitHub">

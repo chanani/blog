@@ -134,7 +134,15 @@ function Header({ theme, toggleTheme }) {
           ))}
         </nav>
         <div className="mobile-lang-wrap">
-          <LangDropdown lang={lang} onChange={(l) => { handleLangChange(l); setMenuOpen(false); }} />
+          {LANG_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              className={`mobile-lang-btn${lang === opt.value ? ' active' : ''}`}
+              onClick={() => { handleLangChange(opt.value); setMenuOpen(false); }}
+            >
+              {opt.short}
+            </button>
+          ))}
         </div>
         <button className="mobile-theme-btn" onClick={toggleTheme} style={{ display: 'none' }}>
           {theme === 'light' ? <FiMoon size={14} /> : <FiSun size={14} />}

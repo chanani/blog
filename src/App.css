@@ -1,7 +1,7 @@
 :root {
   --bg-primary: #ffffff;
   --bg-secondary: #f6f6f6;
-  --bg-tertiary: #ebebeb;
+  --bg-tertiary: #ffffff;
   --text-primary: #0a0a0a;
   --text-secondary: #555555;
   --text-tertiary: #999999;
@@ -33,4 +33,14 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+/* Language switch transition */
+.lang-transition {
+  animation: langFadeIn 0.25s ease-out;
+}
+
+@keyframes langFadeIn {
+  0%   { opacity: 0.35; }
+  100% { opacity: 1; }
 }
