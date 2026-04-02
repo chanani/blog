@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { FiBook, FiFileText } from 'react-icons/fi';
+import { useLang } from '../../../hooks/useLang';
 import './SearchResults.css';
 
 function HighlightText({ text, query }) {
@@ -29,6 +30,7 @@ function SearchResults({
   focusIndex,
   onClose,
 }) {
+  const lang = useLang();
   const hasBooks = bookResults.length > 0;
   const hasContent = contentResults.length > 0;
   const showEmpty = !hasBooks && !hasContent && !indexing;
@@ -51,7 +53,7 @@ function SearchResults({
             <Link
               key={book.slug}
               ref={i === focusIndex ? focusedRef : null}
-              to={`/book/${book.slug}`}
+              to={`/${lang}/book/${book.slug}`}
               className={`sr-item sr-book-item${i === focusIndex ? ' sr-item-focused' : ''}`}
               onClick={onClose}
             >
@@ -98,7 +100,7 @@ function SearchResults({
               <Link
                 key={`${item.bookSlug}-${item.chapterPath}-${i}`}
                 ref={flatIndex === focusIndex ? focusedRef : null}
-                to={`/book/${item.bookSlug}/read/${item.chapterPath}`}
+                to={`/${lang}/book/${item.bookSlug}/read/${item.chapterPath}`}
                 className={`sr-item sr-content-item${flatIndex === focusIndex ? ' sr-item-focused' : ''}`}
                 onClick={onClose}
               >

@@ -1,16 +1,20 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 import { FiSearch, FiBookOpen, FiX } from 'react-icons/fi';
 import useBookStore from '../../store/useBookStore';
 import useSearchStore from '../../store/useSearchStore';
 import useDebounce from '../../hooks/useDebounce';
+import { useLang } from '../../hooks/useLang';
 import BookCard from './_components/BookCard';
 import CategoryFilter from './_components/CategoryFilter';
 import SearchResults from './_components/SearchResults';
 import './Home.css';
 
 function Home() {
+  const { t } = useTranslation();
+  const lang = useLang();
   const {
     loading,
     error,
@@ -179,11 +183,11 @@ function Home() {
         if (focusIndex < filteredBooks.length) {
           const book = filteredBooks[focusIndex];
           saveRecentSearch(debouncedQuery);
-          navigate(`/book/${book.slug}`);
+          navigate(`/${lang}/book/${book.slug}`);
         } else {
           const item = contentResults[focusIndex - filteredBooks.length];
           saveRecentSearch(debouncedQuery);
-          navigate(`/book/${item.bookSlug}/read/${item.chapterPath}`);
+          navigate(`/${lang}/book/${item.bookSlug}/read/${item.chapterPath}`);
         }
         setDropdownOpen(false);
         setFocusIndex(-1);
@@ -216,7 +220,7 @@ function Home() {
           <input
             ref={inputRef}
             type="text"
-            placeholder="제목, 저자, 태그, 본문으로 검색..."
+            placeholder={t('books.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={handleFocus}
@@ -282,13 +286,13 @@ function Home() {
           <section className="reading-history">
             <h2 className="section-title">
               <FiBookOpen size={16} />
-              이어서 읽기
+              {t('books.continueReading')}
             </h2>
             <div className="history-list">
               {readingHistory.slice(0, 1).map((item) => (
                 <div key={`${item.bookSlug}-${item.chapterPath}`} className="history-item">
                   <Link
-                    to={`/book/${item.bookSlug}/read/${item.chapterPath}`}
+                    to={`/${lang}/book/${item.bookSlug}/read/${item.chapterPath}`}
                     className="history-link"
                   >
                     <div className="history-info">
@@ -329,7 +333,7 @@ function Home() {
         {loading && (
           <div className="page-loading">
             <img src="/profile.jpg" alt="이찬한" className="loading-avatar" />
-            <p className="loading-text">책 목록을 불러오는 중...</p>
+            <p className="loading-text">{t('loading.books')}</p>
             <span className="loading-dots"><span className="dot" /><span className="dot" /><span className="dot" /></span>
           </div>
         )}

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import './Dashboard.css';
 
 const fadeUp = (delay = 0) => ({
@@ -10,6 +11,8 @@ const fadeUp = (delay = 0) => ({
 });
 
 function Dashboard() {
+  const { t } = useTranslation();
+
   useEffect(() => {
     document.body.classList.add('hero-page');
     return () => document.body.classList.remove('hero-page');
@@ -28,23 +31,23 @@ function Dashboard() {
       <div className="hero-inner">
         <div className="hero-text">
           <h1>
-            <motion.span className="hero-line" {...fadeUp(0)}>Don't find</motion.span>
-            <motion.span className="hero-line" {...fadeUp(0.18)}>the fault,</motion.span>
-            <motion.span className="hero-line" {...fadeUp(0.36)}>find the remedy.</motion.span>
+            <motion.span className="hero-line" {...fadeUp(0)}>{t('hero.line1')}</motion.span>
+            <motion.span className="hero-line" {...fadeUp(0.18)}>{t('hero.line2')}</motion.span>
+            <motion.span className="hero-line" {...fadeUp(0.36)}>{t('hero.line3')}</motion.span>
           </h1>
         </div>
 
         <motion.div className="hero-info" {...fadeUp(0.55)}>
           <div className="hero-info-item">
-            <span className="hero-info-label">LOCATION</span>
-            <span className="hero-info-value">Seoul, Korea</span>
+            <span className="hero-info-label">{t('hero.locationLabel')}</span>
+            <span className="hero-info-value">{t('hero.locationValue')}</span>
           </div>
           <div className="hero-info-item">
-            <span className="hero-info-label">ROLE</span>
-            <span className="hero-info-value">Backend Developer</span>
+            <span className="hero-info-label">{t('hero.roleLabel')}</span>
+            <span className="hero-info-value">{t('hero.roleValue')}</span>
           </div>
           <div className="hero-info-item">
-            <span className="hero-info-label">CONTACT</span>
+            <span className="hero-info-label">{t('hero.contactLabel')}</span>
             <span className="hero-info-value">theholidaynight@gmail.com</span>
           </div>
         </motion.div>

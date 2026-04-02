@@ -5,11 +5,15 @@ import { motion } from 'framer-motion';
 import { FiArrowLeft, FiChevronRight, FiMessageSquare, FiSearch, FiShare2, FiLink, FiCheck } from 'react-icons/fi';
 import { BsStarFill, BsStarHalf, BsStar } from 'react-icons/bs';
 import useBookStore from '../../store/useBookStore';
+import { useLang } from '../../hooks/useLang';
+import { useTranslation } from 'react-i18next';
 import './Book.css';
 
 function Book() {
   const { bookSlug } = useParams();
   const navigate = useNavigate();
+  const lang = useLang();
+  const { t } = useTranslation();
   const { currentBook, loading, error, loadBook, clearBook } = useBookStore();
   const [imgError, setImgError] = useState(false);
   const [chapterSearch, setChapterSearch] = useState('');
@@ -30,9 +34,9 @@ function Book() {
     if (channel === 'copy') {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        showShareToast('URL이 복사되었습니다');
+        showShareToast(t('book.urlCopied'));
       } catch {
-        showShareToast('복사에 실패했습니다');
+        showShareToast(t('book.copyFailed'));
       }
       setShareOpen(false);
       return;
@@ -71,7 +75,7 @@ function Book() {
       <main className="book-page">
         <div className="page-loading">
           <img src="/profile.jpg" alt="이찬한" className="loading-avatar" />
-          <p className="loading-text">책 정보를 불러오는 중...</p>
+          <p className="loading-text">{t('loading.book')}</p>
           <span className="loading-dots"><span className="dot" /><span className="dot" /><span className="dot" /></span>
         </div>
       </main>
@@ -83,10 +87,10 @@ function Book() {
       <main className="book-page">
         <div className="book-wrap">
           <div className="book-status">
-            <p className="status-msg">책 정보를 불러오지 못했습니다</p>
+            <p className="status-msg">{t('book.errorMsg')}</p>
             <p className="status-detail">{error}</p>
-            <button className="status-btn" onClick={() => navigate('/books')}>
-              책방으로 돌아가기
+            <button className="status-btn" onClick={() => navigate(`/${lang}/books`)}>
+              {t('book.back')}
             </button>
           </div>
         </div>
@@ -135,9 +139,9 @@ function Book() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <button className="back-link" onClick={() => navigate('/books')}>
+        <button className="back-link" onClick={() => navigate(`/${lang}/books`)}>
           <FiArrowLeft size={16} />
-          <span>책방으로 돌아가기</span>
+          <span>{t('book.back')}</span>
         </button>
 
         {/* Book Info Section */}
@@ -178,7 +182,7 @@ function Book() {
                     <div className="book-share-dropdown">
                       <button className="book-share-item" onClick={() => handleShare('copy')}>
                         <FiLink size={14} />
-                        <span>URL 복사</span>
+                        <span>{t('book.copyUrl')}</span>
                       </button>
                       <button className="book-share-item" onClick={() => handleShare('x')}>
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -213,14 +217,14 @@ function Book() {
             <div className="info-metas">
               {currentBook.publisher && (
                 <div className="info-meta-row">
-                  <span className="meta-label">출판사</span>
+                  <span className="meta-label">{t('book.publisher')}</span>
                   <span className="meta-value">{currentBook.publisher}</span>
                 </div>
               )}
               {currentBook.totalPages && (
                 <div className="info-meta-row">
-                  <span className="meta-label">쪽수</span>
-                  <span className="meta-value">{currentBook.totalPages}쪽</span>
+                  <span className="meta-label">{t('book.pages')}</span>
+                  <span className="meta-value">{currentBook.totalPages}{t('book.pagesUnit')}</span>
                 </div>
               )}
             </div>
@@ -239,7 +243,7 @@ function Book() {
         <section className="chapter-section">
           <div className="chapter-section-header">
             <h2 className="section-title">
-              목차
+              {t('book.toc')}
               <span className="chapter-count">{currentBook.totalChapters}</span>
             </h2>
             <div className="chapter-header-actions">
@@ -249,7 +253,7 @@ function Book() {
                     <FiSearch size={14} className="chapter-search-icon" />
                     <input
                       type="text"
-                      placeholder="챕터 검색..."
+                      placeholder={t('book.chapterSearch')}
                       value={chapterSearch}
                       onChange={(e) => setChapterSearch(e.target.value)}
                       className="chapter-search-input"
@@ -265,7 +269,7 @@ function Book() {
               {filteredRootChapters.map((ch) => (
                 <Link
                   key={ch.path}
-                  to={`/book/${bookSlug}/read/${ch.path}`}
+                  to={`/${lang}/book/${bookSlug}/read/${ch.path}`}
                   className="chapter-item"
                 >
                   <span className="chapter-name">{ch.name}</span>
@@ -290,7 +294,7 @@ function Book() {
                 {filteredFolderGroups[folder].map((ch) => (
                   <Link
                     key={ch.path}
-                    to={`/book/${bookSlug}/read/${ch.path}`}
+                    to={`/${lang}/book/${bookSlug}/read/${ch.path}`}
                     className="chapter-item"
                   >
                     <span className="chapter-name">{ch.name}</span>
@@ -310,11 +314,11 @@ function Book() {
           ))}
 
           {currentBook.totalChapters === 0 && (
-            <p className="no-chapters">아직 작성된 챕터가 없습니다.</p>
+            <p className="no-chapters">{t('book.noChapters')}</p>
           )}
 
           {currentBook.totalChapters > 0 && !hasResults && (
-            <p className="no-chapters">검색 결과가 없습니다.</p>
+            <p className="no-chapters">{t('book.noResults')}</p>
           )}
         </section>
 

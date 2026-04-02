@@ -10,6 +10,8 @@ import { oneLight, oneDark } from 'react-syntax-highlighter/dist/esm/styles/pris
 import { FiArrowLeft, FiCalendar, FiEdit3, FiChevronLeft, FiChevronRight, FiList, FiMinus, FiPlus, FiSettings, FiLink, FiCheck, FiCopy, FiDownload, FiShare2, FiEye } from 'react-icons/fi';
 import Giscus from '@giscus/react';
 import useBookStore from '../../store/useBookStore';
+import { useLang } from '../../hooks/useLang';
+import { useTranslation } from 'react-i18next';
 import { fetchViewCount } from '../../api/goatcounter';
 import ImageModal from '../../components/ImageModal';
 import { useHighlight } from '../../hooks/useHighlight';
@@ -78,6 +80,8 @@ function CodeBlock({ language, children }) {
 function Chapter() {
   const { bookSlug, '*': chapterPath } = useParams();
   const navigate = useNavigate();
+  const lang = useLang();
+  const { t } = useTranslation();
   const { currentChapter, loading, error, loadChapter, clearChapter, getChapterNav } =
     useBookStore();
   const { prev, next } = getChapterNav(chapterPath);
@@ -671,7 +675,7 @@ function Chapter() {
       <main className="chapter-page">
         <div className="page-loading">
           <img src="/profile.jpg" alt="이찬한" className="loading-avatar" />
-          <p className="loading-text">글을 불러오는 중...</p>
+          <p className="loading-text">{t('loading.chapter')}</p>
           <span className="loading-dots"><span className="dot" /><span className="dot" /><span className="dot" /></span>
         </div>
       </main>
@@ -683,13 +687,13 @@ function Chapter() {
       <main className="chapter-page">
         <div className="chapter-wrap">
           <div className="chapter-status">
-            <p className="status-msg">챕터를 불러오지 못했습니다</p>
+            <p className="status-msg">{t('chapter.errorMsg')}</p>
             <p className="status-detail">{error}</p>
             <button
               className="status-btn"
-              onClick={() => navigate(`/book/${bookSlug}`)}
+              onClick={() => navigate(`/${lang}/book/${bookSlug}`)}
             >
-              책으로 돌아가기
+              {t('chapter.back')}
             </button>
           </div>
         </div>
@@ -746,7 +750,7 @@ function Chapter() {
         <>
           <aside className={`toc-sidebar${tocOpen ? ' open' : ''}`}>
             <div className="toc-header">
-              <span className="toc-title">목차</span>
+              <span className="toc-title">{t('chapter.toc')}</span>
             </div>
             <nav className="toc-nav">
               {headings.map((h) => (
@@ -779,10 +783,10 @@ function Chapter() {
       >
         <button
           className="back-link"
-          onClick={() => navigate(`/book/${bookSlug}`)}
+          onClick={() => navigate(`/${lang}/book/${bookSlug}`)}
         >
           <FiArrowLeft size={16} />
-          <span>책으로 돌아가기</span>
+          <span>{t('chapter.back')}</span>
         </button>
 
         <article className="chapter-article">
@@ -802,7 +806,7 @@ function Chapter() {
                     <div className="settings-overlay" onClick={() => setSettingsOpen(false)} />
                     <div className="settings-dropdown">
                       <div className="settings-item">
-                        <span className="settings-label">글자 크기</span>
+                        <span className="settings-label">{t('chapter.settings.fontSize')}</span>
                         <div className="font-size-control">
                           <button
                             className="font-size-btn"
@@ -824,7 +828,7 @@ function Chapter() {
                         </div>
                       </div>
                       <div className="settings-item">
-                        <span className="settings-label">글꼴</span>
+                        <span className="settings-label">{t('chapter.settings.font')}</span>
                         <div className="font-select-wrapper">
                           <button
                             className="font-select-btn"
@@ -857,7 +861,7 @@ function Chapter() {
                         </div>
                       </div>
                       <div className="settings-item">
-                        <span className="settings-label">세피아 모드</span>
+                        <span className="settings-label">{t('chapter.settings.sepia')}</span>
                         <button
                           className={`settings-toggle${sepiaMode ? ' active' : ''}`}
                           onClick={toggleSepiaMode}
@@ -868,14 +872,14 @@ function Chapter() {
                       </div>
                       <button className="settings-copy-btn" onClick={copyUrl}>
                         {copied ? <FiCheck size={14} /> : <FiLink size={14} />}
-                        <span>{copied ? '복사됨' : 'URL 복사'}</span>
+                        <span>{copied ? t('chapter.settings.copied') : t('chapter.settings.copyUrl')}</span>
                       </button>
                       <button className="settings-copy-btn" onClick={downloadPdf}>
                         <FiDownload size={14} />
-                        <span>PDF 저장</span>
+                        <span>{t('chapter.settings.pdf')}</span>
                       </button>
                       <div className="settings-share-divider" />
-                      <p className="settings-share-label">공유하기</p>
+                      <p className="settings-share-label">{t('chapter.settings.share')}</p>
                       <div className="settings-share-row">
                         <button className="settings-share-btn" onClick={() => handleShare('x')} aria-label="X 공유">
                           <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -894,19 +898,19 @@ function Chapter() {
                 {currentChapter.createdAt && (
                   <span className="chapter-date-item">
                     <FiCalendar size={13} />
-                    작성 {currentChapter.createdAt}
+                    {t('chapter.written')} {currentChapter.createdAt}
                   </span>
                 )}
                 {currentChapter.updatedAt &&
                   currentChapter.updatedAt !== currentChapter.createdAt && (
                     <span className="chapter-date-item">
                       <FiEdit3 size={13} />
-                      수정 {currentChapter.updatedAt}
+                      {t('chapter.updated')} {currentChapter.updatedAt}
                     </span>
                   )}
                 <span className="chapter-date-item">
                   <FiEye size={13} />
-                  조회 {viewCount ?? 0}
+                  {t('chapter.views')} {viewCount ?? 0}
                 </span>
               </div>
             )}
@@ -1055,11 +1059,11 @@ function Chapter() {
             {prev && (
               <button
                 className="chapter-nav-btn prev"
-                onClick={() => navigate(`/book/${bookSlug}/read/${prev.path}`)}
+                onClick={() => navigate(`/${lang}/book/${bookSlug}/read/${prev.path}`)}
               >
                 <FiChevronLeft size={18} />
                 <div className="chapter-nav-text">
-                  <span className="chapter-nav-label">이전</span>
+                  <span className="chapter-nav-label">{t('chapter.prev')}</span>
                   <span className="chapter-nav-title">{prev.name}</span>
                 </div>
               </button>
@@ -1067,10 +1071,10 @@ function Chapter() {
             {next && (
               <button
                 className="chapter-nav-btn next"
-                onClick={() => navigate(`/book/${bookSlug}/read/${next.path}`)}
+                onClick={() => navigate(`/${lang}/book/${bookSlug}/read/${next.path}`)}
               >
                 <div className="chapter-nav-text">
-                  <span className="chapter-nav-label">다음</span>
+                  <span className="chapter-nav-label">{t('chapter.next')}</span>
                   <span className="chapter-nav-title">{next.name}</span>
                 </div>
                 <FiChevronRight size={18} />

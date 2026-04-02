@@ -4,6 +4,8 @@ import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { FiBookOpen, FiCheck, FiClock, FiCalendar, FiXCircle, FiChevronRight, FiGrid, FiList, FiX, FiTrash2 } from 'react-icons/fi';
 import useBookStore from '../../store/useBookStore';
+import { useLang } from '../../hooks/useLang';
+import { useTranslation } from 'react-i18next';
 import BookCard from '../home/_components/BookCard';
 import './Reading.css';
 
@@ -60,6 +62,7 @@ function useCountUp(target, duration = 600) {
 function StatCard({ item, count, active, onClick }) {
   const Icon = item.icon;
   const displayCount = useCountUp(count);
+  const { t } = useTranslation();
 
   return (
     <button
@@ -70,16 +73,17 @@ function StatCard({ item, count, active, onClick }) {
         <Icon size={16} />
       </div>
       <span className="stat-count">{displayCount}</span>
-      <span className="stat-label">{item.label}</span>
+      <span className="stat-label">{t(item.labelKey)}</span>
     </button>
   );
 }
 
 function GridBookCard({ book }) {
   const [imgError, setImgError] = useState(false);
+  const lang = useLang();
 
   return (
-    <Link to={`/book/${book.slug}`} className="grid-book-card">
+    <Link to={`/${lang}/book/${book.slug}`} className="grid-book-card">
       <div className="grid-cover-wrap">
         {book.cover && !imgError ? (
           <img
@@ -108,18 +112,18 @@ function GridBookCard({ book }) {
 }
 
 const STAT_ITEMS = [
-  { key: 'all', label: '전체', icon: FiBookOpen },
-  { key: '완독', label: '완독', icon: FiCheck },
-  { key: '독서중', label: '독서중', icon: FiBookOpen },
-  { key: '예정', label: '예정', icon: FiCalendar },
+  { key: 'all', labelKey: 'reading.all', icon: FiBookOpen },
+  { key: '완독', labelKey: 'reading.completed', icon: FiCheck },
+  { key: '독서중', labelKey: 'reading.inProgress', icon: FiBookOpen },
+  { key: '예정', labelKey: 'reading.planned', icon: FiCalendar },
 ];
 
 const STATUS_TABS = [
-  { key: 'all', label: '전체' },
-  { key: '완독', label: '완독' },
-  { key: '독서중', label: '독서중' },
-  { key: '예정', label: '예정' },
-  { key: '중단', label: '중단' },
+  { key: 'all', labelKey: 'reading.all' },
+  { key: '완독', labelKey: 'reading.completed' },
+  { key: '독서중', labelKey: 'reading.inProgress' },
+  { key: '예정', labelKey: 'reading.planned' },
+  { key: '중단', labelKey: 'reading.stopped' },
 ];
 
 function SkeletonLoading() {
@@ -176,6 +180,8 @@ function SkeletonLoading() {
 
 function Reading() {
   const { books, loading, loadBooks } = useBookStore();
+  const lang = useLang();
+  const { t } = useTranslation();
   const [readingHistory, setReadingHistory] = useState([]);
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState('list');
@@ -261,19 +267,19 @@ function Reading() {
           <div className="card-header">
             <h2 className="card-title">
               <FiClock size={15} />
-              최근 읽은 기록
+              {t('reading.recentHistory')}
             </h2>
             {readingHistory.length > 0 && (
               <button className="clear-all-btn" onClick={clearAllHistory}>
                 <FiTrash2 size={13} />
-                전체 삭제
+                {t('reading.clearAll')}
               </button>
             )}
           </div>
           {readingHistory.length === 0 && (
             <div className="recent-empty">
               <FiBookOpen size={24} className="empty-icon" />
-              <p>아직 읽은 기록이 없습니다</p>
+              <p>{t('reading.empty')}</p>
             </div>
           )}
           {readingHistory.length > 0 && (
@@ -284,7 +290,7 @@ function Reading() {
                   className="recent-item-wrap"
                 >
                   <Link
-                    to={`/book/${item.bookSlug}/read/${item.chapterPath}`}
+                    to={`/${lang}/book/${item.bookSlug}/read/${item.chapterPath}`}
                     className="recent-item"
                   >
                     <span className="recent-rank">{idx + 1}</span>
@@ -329,7 +335,7 @@ function Reading() {
           <div className="card-header">
             <h2 className="card-title">
               <FiBookOpen size={15} />
-              상태별 책 목록
+              {t('reading.booksByStatus')}
             </h2>
             <div className="card-header-right">
               <span className="card-count">{filteredBooks.length}</span>
@@ -358,7 +364,7 @@ function Reading() {
                 className={`status-tab status-tab-${tab.key}${statusFilter === tab.key ? ' active' : ''}`}
                 onClick={() => setStatusFilter(tab.key)}
               >
-                {tab.label}
+                {t(tab.labelKey)}
                 {statusCounts[tab.key] > 0 && (
                   <span className="tab-count">{statusCounts[tab.key]}</span>
                 )}
@@ -368,7 +374,7 @@ function Reading() {
           {filteredBooks.length === 0 && (
             <div className="filtered-empty">
               <FiXCircle size={20} className="empty-icon" />
-              <p>해당 상태의 책이 없습니다</p>
+              <p>{t('reading.noBooks')}</p>
             </div>
           )}
           {filteredBooks.length > 0 && viewMode === 'list' && (

@@ -1,0 +1,140 @@
+{
+  "nav": {
+    "blog": "blog",
+    "books": "books",
+    "guestbook": "guestbook",
+    "about": "about"
+  },
+  "hero": {
+    "line1": "Don't find",
+    "line2": "the fault,",
+    "line3": "find the remedy.",
+    "locationLabel": "LOCATION",
+    "locationValue": "Seoul, Korea",
+    "roleLabel": "ROLE",
+    "roleValue": "Backend Developer",
+    "contactLabel": "CONTACT"
+  },
+  "about": {
+    "role": "Backend Developer · Seoul, Korea",
+    "p1": "Hi, I'm Chanhan Lee, a backend developer. Rather than waiting for someone to point out a problem, my goal is to proactively find and solve issues myself.",
+    "p2": "This blog is a place to record what I learn and organize my thoughts. I try to capture insights from every line of code and every page I read — because if it's not written down, it eventually disappears.",
+    "p3": "Growing through the support of many people, I naturally began to think about what kind of developer I want to be. Technical excellence matters, but I want to be someone who can extend a hand to a developer in need, without hesitation. Paying forward the help I've received is one of my goals.",
+    "p4_prefix": "Lately, I've been asking ",
+    "p4_em": "\"why?\"",
+    "p4_suffix": " more often. I used to focus too much on \"how,\" and didn't think enough about why I was making certain choices. Decisions without reasons tend to fall apart eventually. Growing into a developer who can explain the reasoning behind every decision — that's where I'm headed.",
+    "p5": "There's still so much to learn, and I'm still very much growing. I hope this space serves as a small source of inspiration — for me, and for anyone who visits."
+  },
+  "loading": {
+    "page": "Loading page...",
+    "posts": "Loading posts...",
+    "books": "Loading books...",
+    "book": "Loading book...",
+    "chapter": "Loading chapter...",
+    "post": "Loading post..."
+  },
+  "blog": {
+    "searchPlaceholder": "Search...",
+    "sortLatest": "Latest",
+    "sortOldest": "Oldest",
+    "sortViews": "Most Viewed",
+    "sortComments": "Most Commented",
+    "empty": "No posts yet.",
+    "noResult": "No results found.",
+    "error": "Failed to load posts.",
+    "retry": "Try again"
+  },
+  "books": {
+    "searchPlaceholder": "Search by title, author, tag...",
+    "continueReading": "Continue Reading",
+    "errorMsg": "Failed to load books",
+    "empty": "No books registered yet.",
+    "noResult": "No results found."
+  },
+  "reading": {
+    "recentHistory": "Recent Reading History",
+    "clearAll": "Clear All",
+    "empty": "No reading history yet",
+    "booksByStatus": "Books by Status",
+    "noBooks": "No books with this status",
+    "all": "All",
+    "completed": "Completed",
+    "inProgress": "Reading",
+    "planned": "Planned",
+    "stopped": "Stopped"
+  },
+  "book": {
+    "back": "Back to Books",
+    "toc": "Contents",
+    "chapterSearch": "Search chapters...",
+    "noChapters": "No chapters yet",
+    "noResults": "No results found",
+    "errorMsg": "Failed to load book",
+    "publisher": "Publisher",
+    "pages": "Pages",
+    "pagesUnit": "pages",
+    "copyUrl": "Copy URL",
+    "urlCopied": "URL copied",
+    "copyFailed": "Copy failed"
+  },
+  "chapter": {
+    "back": "Back to Book",
+    "toc": "Contents",
+    "prev": "Previous",
+    "next": "Next",
+    "errorMsg": "Failed to load chapter",
+    "written": "Written",
+    "updated": "Updated",
+    "views": "Views",
+    "settings": {
+      "fontSize": "Font Size",
+      "font": "Font",
+      "sepia": "Sepia Mode",
+      "copyUrl": "Copy URL",
+      "copied": "Copied",
+      "share": "Share",
+      "pdf": "Save PDF"
+    }
+  },
+  "guestbook": {
+    "placeholder": "Leave a message!",
+    "post": "Post",
+    "submitting": "Saving...",
+    "logout": "Logout",
+    "loginDesc": "Please sign in to leave a message.",
+    "googleLogin": "Sign in with Google",
+    "githubLogin": "Sign in with GitHub",
+    "empty": "No messages yet. Be the first to leave one!",
+    "error": "Failed to load guestbook.",
+    "deleteConfirm": "Are you sure you want to delete this?",
+    "loginRequired": "Please sign in.",
+    "emptyMessage": "Please enter a message.",
+    "tooLong": "Message must be 500 characters or less.",
+    "saveFailed": "Failed to save.",
+    "networkError": "A network error occurred.",
+    "loginFailed": "Login failed. Please try again."
+  },
+  "notfound": {
+    "title": "Page Not Found",
+    "desc": "The page you requested does not exist or may have been moved.",
+    "back": "Go Back",
+    "home": "Go Home"
+  },
+  "post": {
+    "back": "Back to list",
+    "toc": "Contents",
+    "prev": "Previous",
+    "next": "Next",
+    "errorMsg": "Failed to load post",
+    "updated": "Updated",
+    "views": "Views",
+    "settings": {
+      "fontSize": "Font Size",
+      "font": "Font",
+      "sepia": "Sepia Mode",
+      "copyUrl": "Copy URL",
+      "copied": "Copied",
+      "share": "Share"
+    }
+  }
+}

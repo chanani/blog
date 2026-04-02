@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import './CategoryFilter.css';
 
 function CategoryFilter({ categories, selected, onSelect }) {
+  const { t } = useTranslation();
+
   return (
     <div className="category-filter">
       {categories.map((category) => (
@@ -11,7 +14,7 @@ function CategoryFilter({ categories, selected, onSelect }) {
           onClick={() => onSelect(category)}
           whileTap={{ scale: 0.95 }}
         >
-          {category === 'all' ? '전체' : category}
+          {category === 'all' ? t('reading.all') : category}
         </motion.button>
       ))}
     </div>

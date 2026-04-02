@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiChevronRight } from 'react-icons/fi';
 import { BsStarFill, BsStarHalf, BsStar } from 'react-icons/bs';
+import { useLang } from '../../../hooks/useLang';
 import './BookCard.css';
 
 function BookCard({ book, index }) {
   const [imgError, setImgError] = useState(false);
+  const lang = useLang();
 
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => {
@@ -23,7 +25,7 @@ function BookCard({ book, index }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: index * 0.04 }}
     >
-      <Link to={`/book/${book.slug}`} className="book-card">
+      <Link to={`/${lang}/book/${book.slug}`} className="book-card">
         <div className="book-cover-wrap">
           {book.cover && !imgError ? (
             <img

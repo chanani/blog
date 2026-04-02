@@ -2,22 +2,24 @@ import { useEffect, useState, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { FiSearch, FiX, FiCalendar, FiEye, FiMessageSquare, FiChevronLeft, FiChevronRight, FiChevronDown } from 'react-icons/fi';
 import useDevStore from '../../store/useDevStore';
 import { fetchViewCountBatch } from '../../api/goatcounter';
+import { useLang } from '../../hooks/useLang';
 import defaultCover from '../../assets/images/default/default.png';
 import './DevHome.css';
-
-const SORT_OPTIONS = [
-  { value: 'latest', label: '최신순' },
-  { value: 'oldest', label: '오래된순' },
-  { value: 'views', label: '조회순' },
-  { value: 'comments', label: '댓글순' },
-];
 
 function SortDropdown({ value, onChange }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const { t } = useTranslation();
+  const SORT_OPTIONS = [
+    { value: 'latest', label: t('blog.sortLatest') },
+    { value: 'oldest', label: t('blog.sortOldest') },
+    { value: 'views', label: t('blog.sortViews') },
+    { value: 'comments', label: t('blog.sortComments') },
+  ];
   const selected = SORT_OPTIONS.find((o) => o.value === value);
 
   useEffect(() => {
@@ -52,6 +54,7 @@ function SortDropdown({ value, onChange }) {
 
 function PostItem({ post, index, commentCount, viewCount }) {
   const [imgError, setImgError] = useState(false);
+  const lang = useLang();
 
   return (
     <motion.div
@@ -59,7 +62,7 @@ function PostItem({ post, index, commentCount, viewCount }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, delay: index * 0.04 }}
     >
-      <Link to={`/post/${post.category}/${post.slug}`} className="post-item">
+      <Link to={`/${lang}/post/${post.category}/${post.slug}`} className="post-item">
         <div className="post-thumb">
           <img
             src={!imgError && post.cover ? post.cover : defaultCover}
@@ -105,6 +108,8 @@ function PostItem({ post, index, commentCount, viewCount }) {
 }
 
 function DevHome() {
+  const { t } = useTranslation();
+  const lang = useLang();
   const {
     loading,
     error,
@@ -192,7 +197,7 @@ function DevHome() {
               <FiSearch size={14} className="blog-search-icon" />
               <input
                 type="text"
-                placeholder="검색..."
+                placeholder={t('blog.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="blog-search-input"
@@ -228,7 +233,7 @@ function DevHome() {
           {loading && (
             <div className="page-loading">
               <img src="/profile.jpg" alt="이찬한" className="loading-avatar" />
-              <p className="loading-text">게시글을 불러오는 중...</p>
+              <p className="loading-text">{t('loading.posts')}</p>
               <span className="loading-dots"><span className="dot" /><span className="dot" /><span className="dot" /></span>
             </div>
           )}
@@ -244,7 +249,7 @@ function DevHome() {
           {/* Empty */}
           {!loading && !error && filteredPosts.length === 0 && (
             <div className="blog-status">
-              <p>{searchQuery || selectedCategory !== 'all' ? '검색 결과가 없습니다.' : '아직 작성된 글이 없습니다.'}</p>
+              <p>{searchQuery || selectedCategory !== 'all' ? t('blog.noResult') : t('blog.empty')}</p>
             </div>
           )}
 
