@@ -490,6 +490,34 @@
   color: #ef4444;
 }
 
+/* ── Toast ── */
+.gb-toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 600;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.gb-toast--success {
+  background: #1a1a2e;
+  color: #ffffff;
+}
+
+.gb-toast--error {
+  background: #ef4444;
+  color: #ffffff;
+}
+
 /* ── Responsive ── */
 @media (max-width: 900px) {
   .gb-grid {

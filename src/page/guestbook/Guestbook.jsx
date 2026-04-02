@@ -1,10 +1,42 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { FiLogOut, FiX, FiTrash2 } from 'react-icons/fi';
+import { FiLogOut, FiX, FiTrash2, FiCheck, FiAlertCircle } from 'react-icons/fi';
 import './Guestbook.css';
+
+function useToast() {
+  const [toast, setToast] = useState(null);
+  const timerRef = useRef(null);
+
+  const show = useCallback((message, type = 'success') => {
+    clearTimeout(timerRef.current);
+    setToast({ message, type });
+    timerRef.current = setTimeout(() => setToast(null), 2800);
+  }, []);
+
+  return { toast, show };
+}
+
+function Toast({ toast }) {
+  return (
+    <AnimatePresence>
+      {toast && (
+        <motion.div
+          className={`gb-toast gb-toast--${toast.type}`}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {toast.type === 'success' ? <FiCheck size={14} /> : <FiAlertCircle size={14} />}
+          <span>{toast.message}</span>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
 
 const COLOR_OPTIONS = [
   { id: 'white',  hex: '#f8fafc' },
@@ -139,6 +171,7 @@ function Guestbook() {
   const [user, setUser] = useState(null);
   const [modalEntry, setModalEntry] = useState(null);
   const [searchParams] = useSearchParams();
+  const { toast, show: showToast } = useToast();
 
   useEffect(() => {
     const u = getGbUser();
@@ -190,6 +223,7 @@ function Guestbook() {
       if (!r.ok) return setFormError(data.error || t('guestbook.saveFailed'));
       setEntries((prev) => [data, ...prev]);
       setMessage('');
+      showToast(t('guestbook.post') + ' 완료!');
     } catch {
       setFormError(t('guestbook.networkError'));
     } finally {
@@ -291,7 +325,7 @@ function Guestbook() {
                 key={entry.id}
                 entry={entry}
                 user={user}
-                onDelete={(id) => setEntries((prev) => prev.filter((e) => e.id !== id))}
+                onDelete={(id) => { setEntries((prev) => prev.filter((e) => e.id !== id)); showToast('삭제되었습니다.', 'error'); }}
                 onOpen={setModalEntry}
                 t={t}
               />
@@ -300,12 +334,14 @@ function Guestbook() {
         )}
       </div>
 
+      <Toast toast={toast} />
+
       <AnimatePresence>
         {modalEntry && (
           <GuestbookModal
             entry={modalEntry}
             onClose={() => setModalEntry(null)}
-            onDelete={(id) => { setEntries((prev) => prev.filter((e) => e.id !== id)); setModalEntry(null); }}
+            onDelete={(id) => { setEntries((prev) => prev.filter((e) => e.id !== id)); setModalEntry(null); showToast('삭제되었습니다.', 'error'); }}
             user={user}
             t={t}
           />
