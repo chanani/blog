@@ -122,32 +122,32 @@ function Header({ theme, toggleTheme }) {
 
       <div className={`mobile-menu${menuOpen ? ' open' : ''}`}>
         <nav className="mobile-nav">
-          {NAV_PATHS.map((link) => (
+          {NAV_PATHS.map((link, i) => (
             <Link
               key={link.path}
               to={`/${lang}/${link.path}`}
               className={`mobile-nav-link${isActive(link.path) ? ' active' : ''}`}
+              style={{ animationDelay: `${0.04 + i * 0.06}s` }}
               onClick={() => setMenuOpen(false)}
             >
-              {t(link.labelKey)}
+              <span className="mobile-nav-index">0{i + 1}</span>
+              <span className="mobile-nav-label">{t(link.labelKey)}</span>
             </Link>
           ))}
         </nav>
-        <div className="mobile-lang-wrap">
-          {LANG_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              className={`mobile-lang-btn${lang === opt.value ? ' active' : ''}`}
-              onClick={() => { handleLangChange(opt.value); setMenuOpen(false); }}
-            >
-              {opt.short}
-            </button>
-          ))}
+        <div className="mobile-menu-footer">
+          <div className="mobile-lang-wrap">
+            {LANG_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                className={`mobile-lang-btn${lang === opt.value ? ' active' : ''}`}
+                onClick={() => { handleLangChange(opt.value); setMenuOpen(false); }}
+              >
+                {opt.short}
+              </button>
+            ))}
+          </div>
         </div>
-        <button className="mobile-theme-btn" onClick={toggleTheme} style={{ display: 'none' }}>
-          {theme === 'light' ? <FiMoon size={14} /> : <FiSun size={14} />}
-          {theme === 'light' ? 'dark mode' : 'light mode'}
-        </button>
       </div>
     </header>
   );
