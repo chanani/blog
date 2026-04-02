@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { FiLogOut, FiX, FiTrash2 } from 'react-icons/fi';
 import './Guestbook.css';
 
 const COLOR_OPTIONS = [
@@ -29,11 +30,31 @@ function formatDate(iso) {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function GuestbookCard({ entry, user, onDelete, t }) {
+function CardAuthor({ entry }) {
+  return (
+    <div className="gb-card-header">
+      <div className="gb-card-avatar-wrap">
+        {entry.emoji
+          ? <span className="gb-card-emoji">{entry.emoji}</span>
+          : entry.avatar
+            ? <img className="gb-card-avatar" src={entry.avatar} alt={entry.nickname} />
+            : <div className="gb-card-avatar-fallback">{entry.nickname?.[0]?.toUpperCase()}</div>
+        }
+      </div>
+      <div className="gb-card-meta">
+        <span className="gb-card-nickname">{entry.nickname}</span>
+        <span className="gb-card-date">{formatDate(entry.createdAt)}</span>
+      </div>
+    </div>
+  );
+}
+
+function GuestbookCard({ entry, user, onDelete, onOpen, t }) {
   const bg = COLOR_OPTIONS.find((c) => c.id === entry.color)?.hex || '#dcfce7';
   const isOwner = user && user.login === entry.nickname;
 
-  async function handleDelete() {
+  async function handleDelete(e) {
+    e.stopPropagation();
     if (!window.confirm(t('guestbook.deleteConfirm'))) return;
     try {
       const r = await fetch(`/api/guestbook?id=${encodeURIComponent(entry.id)}`, { method: 'DELETE' });
@@ -47,25 +68,61 @@ function GuestbookCard({ entry, user, onDelete, t }) {
       style={{ background: bg }}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
+      whileHover={{ y: -1, boxShadow: '0 4px 16px rgba(0,0,0,0.09)' }}
+      transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      onClick={() => onOpen(entry)}
     >
+      <CardAuthor entry={entry} />
       <p className="gb-card-message">{entry.message}</p>
-      <div className="gb-card-footer">
-        <div className="gb-card-author">
-          {entry.emoji
-            ? <span className="gb-card-emoji">{entry.emoji}</span>
-            : entry.avatar && <img className="gb-card-avatar" src={entry.avatar} alt={entry.nickname} />
-          }
-          <span className="gb-card-nickname">{entry.nickname}</span>
-        </div>
-        <div className="gb-card-footer-right">
-          <span className="gb-card-date">{formatDate(entry.createdAt)}</span>
-          {isOwner && (
-            <button className="gb-card-delete-btn" onClick={handleDelete} aria-label="delete">✕</button>
-          )}
-        </div>
-      </div>
+      {isOwner && (
+        <button className="gb-card-delete-btn" onClick={handleDelete} aria-label="delete">✕</button>
+      )}
     </motion.div>
+  );
+}
+
+function GuestbookModal({ entry, onClose, onDelete, user, t }) {
+  const bg = COLOR_OPTIONS.find((c) => c.id === entry.color)?.hex || '#dcfce7';
+  const isOwner = user && user.login === entry.nickname;
+
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  async function handleDelete() {
+    if (!window.confirm(t('guestbook.deleteConfirm'))) return;
+    try {
+      const r = await fetch(`/api/guestbook?id=${encodeURIComponent(entry.id)}`, { method: 'DELETE' });
+      if (r.ok) { onDelete(entry.id); onClose(); }
+    } catch { /* ignore */ }
+  }
+
+  return (
+    <div className="gb-modal-overlay" onClick={onClose}>
+      <motion.div
+        className="gb-modal"
+        style={{ background: bg }}
+        initial={{ opacity: 0, scale: 0.94, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.94, y: 8 }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button className="gb-modal-close" onClick={onClose} aria-label="close">
+          <FiX size={16} />
+        </button>
+        <CardAuthor entry={entry} />
+        <p className="gb-modal-message">{entry.message}</p>
+        {isOwner && (
+          <button className="gb-modal-delete-btn" onClick={handleDelete}>
+            <FiTrash2 size={13} />
+            {t('guestbook.deleteConfirm').replace('?', '')}
+          </button>
+        )}
+      </motion.div>
+    </div>
   );
 }
 
@@ -80,6 +137,7 @@ function Guestbook() {
   const [selectedColor, setSelectedColor] = useState('green');
   const [nickname, setNickname] = useState('');
   const [user, setUser] = useState(null);
+  const [modalEntry, setModalEntry] = useState(null);
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -152,7 +210,6 @@ function Guestbook() {
       <div className="guestbook-body">
         {user ? (
           <form className="gb-form" onSubmit={handleSubmit}>
-            {/* Color picker */}
             <div className="gb-color-row">
               {COLOR_OPTIONS.map((c) => (
                 <button
@@ -166,7 +223,6 @@ function Guestbook() {
               ))}
             </div>
 
-            {/* Message */}
             <textarea
               className="gb-textarea"
               placeholder={t('guestbook.placeholder')}
@@ -178,7 +234,6 @@ function Guestbook() {
               style={{ background: selectedBg }}
             />
 
-            {/* Bottom */}
             <div className="gb-form-bottom">
               {formError && <p className="gb-form-error">{formError}</p>}
               <button
@@ -186,6 +241,7 @@ function Guestbook() {
                 className="gb-logout-btn"
                 onClick={() => { window.location.href = '/api/oauth/logout'; }}
               >
+                <FiLogOut size={13} />
                 {t('guestbook.logout')}
               </button>
               <button className="gb-submit-btn" type="submit" disabled={submitting}>
@@ -217,7 +273,6 @@ function Guestbook() {
           </div>
         )}
 
-        {/* Entries */}
         {loading && (
           <div className="gb-status">
             <span className="loading-dots">
@@ -237,12 +292,25 @@ function Guestbook() {
                 entry={entry}
                 user={user}
                 onDelete={(id) => setEntries((prev) => prev.filter((e) => e.id !== id))}
+                onOpen={setModalEntry}
                 t={t}
               />
             ))}
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {modalEntry && (
+          <GuestbookModal
+            entry={modalEntry}
+            onClose={() => setModalEntry(null)}
+            onDelete={(id) => { setEntries((prev) => prev.filter((e) => e.id !== id)); setModalEntry(null); }}
+            user={user}
+            t={t}
+          />
+        )}
+      </AnimatePresence>
     </main>
   );
 }

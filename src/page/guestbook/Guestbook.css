@@ -43,9 +43,10 @@
   margin: 0 auto 48px;
   padding: 20px;
   max-width: 330px;
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
 }
 
 /* ── Emoji picker ── */
@@ -181,6 +182,9 @@
 }
 
 .gb-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-size: 0.78rem;
   color: var(--text-tertiary);
   background: none;
@@ -202,9 +206,10 @@
   padding: 20px;
   margin: 0 auto 48px;
   max-width: 330px;
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
 }
 
 .gb-login-desc {
@@ -308,75 +313,103 @@
 
 /* ── Card ── */
 .gb-card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 20px;
+  gap: 12px;
+  padding: 18px;
   border-radius: 12px;
-  min-height: 140px;
+  min-height: 130px;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.07);
+  cursor: pointer;
 }
 
-.gb-card-message {
-  font-size: 0.88rem;
-  line-height: 1.65;
-  color: #1a1a2e;
-  word-break: break-word;
-  flex: 1;
-}
-
-.gb-card-footer {
+.gb-card-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 10px;
 }
 
-.gb-card-author {
-  display: flex;
-  align-items: center;
-  gap: 7px;
+.gb-card-avatar-wrap {
+  flex-shrink: 0;
 }
 
 .gb-card-avatar {
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   object-fit: cover;
-  flex-shrink: 0;
 }
 
-.gb-card-emoji {
-  font-size: 1.1rem;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.gb-card-nickname {
-  font-size: 0.8rem;
+.gb-card-avatar-fallback {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(26, 26, 46, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #1a1a2e;
 }
 
-.gb-card-footer-right {
+.gb-card-emoji {
+  width: 30px;
+  height: 30px;
+  font-size: 1.2rem;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gb-card-meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.gb-card-nickname {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
 }
 
 .gb-card-date {
-  font-size: 0.72rem;
+  font-size: 0.67rem;
   color: rgba(26, 26, 46, 0.5);
   white-space: nowrap;
+  line-height: 1.3;
+}
+
+.gb-card-message {
+  font-size: 0.87rem;
+  line-height: 1.65;
+  color: #1a1a2e;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .gb-card-delete-btn {
-  font-size: 0.7rem;
-  color: rgba(26, 26, 46, 0.35);
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 0.65rem;
+  color: rgba(26, 26, 46, 0.3);
   background: none;
   cursor: pointer;
-  line-height: 1;
-  padding: 2px 4px;
+  padding: 3px 5px;
   border-radius: 4px;
   transition: color 0.15s, background 0.15s;
 }
@@ -384,6 +417,77 @@
 .gb-card-delete-btn:hover {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.1);
+}
+
+/* ── Modal ── */
+.gb-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(3px);
+}
+
+.gb-modal {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.16);
+}
+
+.gb-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(26, 26, 46, 0.45);
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.gb-modal-close:hover {
+  color: #1a1a2e;
+  background: rgba(26, 26, 46, 0.08);
+}
+
+.gb-modal .gb-card-header {
+  margin-bottom: 16px;
+}
+
+.gb-modal-message {
+  font-size: 0.92rem;
+  line-height: 1.75;
+  color: #1a1a2e;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.gb-modal-delete-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 20px;
+  font-size: 0.78rem;
+  color: rgba(26, 26, 46, 0.35);
+  background: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.gb-modal-delete-btn:hover {
+  color: #ef4444;
 }
 
 /* ── Responsive ── */
