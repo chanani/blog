@@ -591,7 +591,7 @@ function Chapter() {
 
     // 목차 활성 항목 계산
     if (headings.length === 0) return;
-    const scrollY = window.scrollY + 100;
+    const scrollY = window.scrollY + window.innerHeight * 0.35;
     let current = '';
     for (const heading of headings) {
       const el = document.getElementById(heading.id);
@@ -620,6 +620,7 @@ function Chapter() {
     const el = document.getElementById(id);
     if (el) {
       window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
+      setActiveId(id);
       setTocOpen(false);
     }
   };
