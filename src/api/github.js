@@ -862,6 +862,26 @@ export async function saveDevPost({ category, slug, title, date, tags, descripti
 }
 
 // Delete a file from GitHub
+export async function uploadImage({ imagePath, file }) {
+  const base64 = await fileToBase64(file);
+  const encodedPath = imagePath.split('/').map(encodeURIComponent).join('/');
+
+  let sha;
+  try {
+    const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${encodedPath}`);
+    sha = data.sha;
+  } catch {
+    sha = undefined;
+  }
+
+  await githubApi.put(`/repos/${OWNER}/${REPO}/contents/${encodedPath}`, {
+    message: `docs: add image ${file.name}`,
+    content: base64,
+    branch: 'master',
+    ...(sha ? { sha } : {}),
+  });
+}
+
 export async function fetchFolderFiles(folderPath) {
   const encodedPath = folderPath.split('/').map(encodeURIComponent).join('/');
   try {
