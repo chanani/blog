@@ -624,12 +624,23 @@ export async function fetchDevPostList() {
   }
 }
 
+// Convert a File object to base64 string (without data URL prefix)
+async function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 // Fetch a single dev post
 // Tries folder format first (finds any .md inside), falls back to flat file (slug.md)
 export async function fetchDevPost(category, slug) {
   let rawContent;
   let cover = '';
   let mdFilePath;
+  let isFolder = false;
 
   const encCat = encodeURIComponent(category);
   const encSlug = encodeURIComponent(slug);
@@ -647,6 +658,7 @@ export async function fetchDevPost(category, slug) {
 
     cover = findCover(decodedFiles);
     mdFilePath = `${folderPath}/${mdFile.name}`;
+    isFolder = true;
 
     const { data: fileData } = await githubApi.get(
       `/repos/${OWNER}/${REPO}/contents/${DEV_PATH}/${encCat}/${encSlug}/${encodeURIComponent(mdFile.name)}`,
@@ -672,10 +684,288 @@ export async function fetchDevPost(category, slug) {
     tags: Array.isArray(meta.tags) ? meta.tags : [],
     description: meta.description || '',
     cover,
+    isFolder,
     content: body,
     createdAt: formatDate(dates.createdAt),
     updatedAt: formatDate(dates.updatedAt),
   };
+}
+
+// Fetch dev post folder tree (lightweight - no content fetching)
+export async function fetchDevTree() {
+  try {
+    const { data: categories } = await githubApi.get(
+      `/repos/${OWNER}/${REPO}/contents/${DEV_PATH}`,
+    );
+    const categoryDirs = categories.filter((d) => d.type === 'dir');
+
+    const result = await Promise.all(
+      categoryDirs.map(async (dir) => {
+        const catName = decodeGitQuotedName(dir.name);
+        try {
+          const { data: entries } = await githubApi.get(
+            `/repos/${OWNER}/${REPO}/contents/${DEV_PATH}/${encodeURIComponent(catName)}`,
+          );
+          const slugs = entries
+            .filter((e) => {
+              const eName = decodeGitQuotedName(e.name);
+              return (e.type === 'file' && eName.endsWith('.md')) || e.type === 'dir';
+            })
+            .map((e) => decodeGitQuotedName(e.name).replace(/\.md$/, ''));
+          return { category: catName, slugs };
+        } catch {
+          return { category: catName, slugs: [] };
+        }
+      }),
+    );
+
+    return result.filter((c) => c.slugs.length > 0);
+  } catch {
+    return [];
+  }
+}
+
+// Fetch book chapter tree (lightweight - no content fetching)
+export async function fetchBookTree() {
+  try {
+    const { data: dirs } = await githubApi.get(
+      `/repos/${OWNER}/${REPO}/contents/${BOOKS_PATH}`,
+    );
+    const bookDirs = dirs.filter((d) => d.type === 'dir');
+
+    const result = await Promise.all(
+      bookDirs.map(async (dir) => {
+        const bookSlug = decodeGitQuotedName(dir.name);
+        try {
+          const { data: entries } = await githubApi.get(
+            `/repos/${OWNER}/${REPO}/contents/${BOOKS_PATH}/${encodeURIComponent(bookSlug)}`,
+          );
+
+          const chapters = [];
+          const subDirs = [];
+
+          for (const entry of entries) {
+            const eName = decodeGitQuotedName(entry.name);
+            if (entry.type === 'file' && eName.endsWith('.md') && eName !== 'index.md') {
+              chapters.push({ name: eName, path: eName.replace(/\.md$/, '') });
+            } else if (entry.type === 'dir' && !['images', 'assets'].includes(eName)) {
+              subDirs.push(eName);
+            }
+          }
+
+          await Promise.all(
+            subDirs.map(async (folderName) => {
+              try {
+                const { data: subEntries } = await githubApi.get(
+                  `/repos/${OWNER}/${REPO}/contents/${BOOKS_PATH}/${encodeURIComponent(bookSlug)}/${encodeURIComponent(folderName)}`,
+                );
+                subEntries
+                  .filter((e) => e.type === 'file' && decodeGitQuotedName(e.name).endsWith('.md'))
+                  .forEach((e) => {
+                    const seName = decodeGitQuotedName(e.name);
+                    chapters.push({
+                      name: `${folderName}/${seName}`,
+                      path: `${folderName}/${seName.replace(/\.md$/, '')}`,
+                    });
+                  });
+              } catch {
+                // skip
+              }
+            }),
+          );
+
+          return { bookSlug, chapters };
+        } catch {
+          return { bookSlug, chapters: [] };
+        }
+      }),
+    );
+
+    return result;
+  } catch {
+    return [];
+  }
+}
+
+// Save a book chapter to GitHub (create or update)
+export async function saveBookChapter({ bookSlug, chapterPath, content }) {
+  const filePath = `${BOOKS_PATH}/${bookSlug}/${chapterPath}.md`;
+  const encodedPath = filePath.split('/').map(encodeURIComponent).join('/');
+  const encoded = btoa(unescape(encodeURIComponent(content)));
+
+  let sha;
+  try {
+    const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${encodedPath}`);
+    sha = data.sha;
+  } catch {
+    sha = undefined;
+  }
+
+  const body = {
+    message: sha ? `docs: update chapter ${bookSlug}/${chapterPath}` : `docs: add chapter ${bookSlug}/${chapterPath}`,
+    content: encoded,
+    branch: 'master',
+    ...(sha ? { sha } : {}),
+  };
+
+  const { data } = await githubApi.put(`/repos/${OWNER}/${REPO}/contents/${encodedPath}`, body);
+  return data;
+}
+
+// Save a dev post to GitHub (create or update)
+// Structure: dev/{category}/{slug}/{slug}.md  +  optional cover.{ext}
+export async function saveDevPost({ category, slug, title, date, tags, description, content, coverFile }) {
+  const tagStr = Array.isArray(tags) ? `[${tags.map((t) => `"${t}"`).join(', ')}]` : '[]';
+  const frontmatter = `---\ntitle: "${title}"\ndate: "${date}"\ntags: ${tagStr}\ndescription: "${description}"\n---\n`;
+  const encoded = btoa(unescape(encodeURIComponent(frontmatter + content)));
+
+  // Always folder format: dev/{category}/{slug}/{slug}.md
+  const mdFilePath = `${DEV_PATH}/${category}/${slug}/${slug}.md`;
+  const mdEncodedPath = mdFilePath.split('/').map(encodeURIComponent).join('/');
+
+  let sha;
+  try {
+    const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${mdEncodedPath}`);
+    sha = data.sha;
+  } catch {
+    sha = undefined;
+  }
+
+  await githubApi.put(`/repos/${OWNER}/${REPO}/contents/${mdEncodedPath}`, {
+    message: sha ? `docs: update post ${category}/${slug}` : `docs: add post ${category}/${slug}`,
+    content: encoded,
+    branch: 'master',
+    ...(sha ? { sha } : {}),
+  });
+
+  if (coverFile) {
+    const ext = coverFile.name.split('.').pop().toLowerCase();
+    const coverEncodedPath = `${DEV_PATH}/${category}/${slug}/cover.${ext}`
+      .split('/').map(encodeURIComponent).join('/');
+    const coverBase64 = await fileToBase64(coverFile);
+
+    let coverSha;
+    try {
+      const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${coverEncodedPath}`);
+      coverSha = data.sha;
+    } catch {
+      coverSha = undefined;
+    }
+
+    await githubApi.put(`/repos/${OWNER}/${REPO}/contents/${coverEncodedPath}`, {
+      message: `docs: ${coverSha ? 'update' : 'add'} cover for ${category}/${slug}`,
+      content: coverBase64,
+      branch: 'master',
+      ...(coverSha ? { sha: coverSha } : {}),
+    });
+  }
+}
+
+// Delete a file from GitHub
+export async function fetchFolderFiles(folderPath) {
+  const encodedPath = folderPath.split('/').map(encodeURIComponent).join('/');
+  try {
+    const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${encodedPath}`);
+    return Array.isArray(data) ? data.filter((f) => f.type === 'file') : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function deleteGithubFile({ filePath, message }) {
+  const encodedPath = filePath.split('/').map(encodeURIComponent).join('/');
+  const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${encodedPath}`);
+  await githubApi.delete(`/repos/${OWNER}/${REPO}/contents/${encodedPath}`, {
+    data: { message, sha: data.sha, branch: 'master' },
+  });
+}
+
+// Copy a file to a new path (read → write)
+export async function copyGithubFile({ fromPath, toPath, message }) {
+  const encodedFrom = fromPath.split('/').map(encodeURIComponent).join('/');
+  const { data: src } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${encodedFrom}`);
+
+  const encodedTo = toPath.split('/').map(encodeURIComponent).join('/');
+  let toSha;
+  try {
+    const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${encodedTo}`);
+    toSha = data.sha;
+  } catch {
+    toSha = undefined;
+  }
+
+  await githubApi.put(`/repos/${OWNER}/${REPO}/contents/${encodedTo}`, {
+    message,
+    content: src.content.replace(/\n/g, ''), // already base64
+    branch: 'master',
+    ...(toSha ? { sha: toSha } : {}),
+  });
+}
+
+// Fetch a book's info.json
+export async function fetchBookInfo(bookSlug) {
+  const encodedPath = `${BOOKS_PATH}/${bookSlug}/info.json`
+    .split('/').map(encodeURIComponent).join('/');
+  const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${encodedPath}`);
+  return JSON.parse(decodeBase64(data.content));
+}
+
+// Create or update a book (info.json + optional cover)
+// Structure: books/{bookSlug}/info.json  +  optional cover.{ext}
+export async function saveNewBook({ bookSlug, title, subtitle, author, publisher, totalPages, category, rating, tags, excerpt, date, status, coverFile }) {
+  const info = {
+    title,
+    ...(subtitle ? { subtitle } : {}),
+    ...(author ? { author } : {}),
+    ...(publisher ? { publisher } : {}),
+    ...(totalPages ? { totalPages: Number(totalPages) } : {}),
+    ...(category ? { category } : {}),
+    ...(rating !== '' && rating != null ? { rating: Number(rating) } : {}),
+    ...(tags && tags.length > 0 ? { tags } : {}),
+    ...(excerpt ? { excerpt } : {}),
+    ...(date ? { date } : {}),
+    ...(status ? { status } : {}),
+  };
+  const infoEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(info, null, 2))));
+  const infoEncodedPath = `${BOOKS_PATH}/${bookSlug}/info.json`
+    .split('/').map(encodeURIComponent).join('/');
+
+  let infoSha;
+  try {
+    const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${infoEncodedPath}`);
+    infoSha = data.sha;
+  } catch {
+    infoSha = undefined;
+  }
+
+  await githubApi.put(`/repos/${OWNER}/${REPO}/contents/${infoEncodedPath}`, {
+    message: infoSha ? `docs: update book info ${bookSlug}` : `docs: add book ${bookSlug}`,
+    content: infoEncoded,
+    branch: 'master',
+    ...(infoSha ? { sha: infoSha } : {}),
+  });
+
+  if (coverFile) {
+    const ext = coverFile.name.split('.').pop().toLowerCase();
+    const coverEncodedPath = `${BOOKS_PATH}/${bookSlug}/cover.${ext}`
+      .split('/').map(encodeURIComponent).join('/');
+    const coverBase64 = await fileToBase64(coverFile);
+
+    let coverSha;
+    try {
+      const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${coverEncodedPath}`);
+      coverSha = data.sha;
+    } catch {
+      coverSha = undefined;
+    }
+
+    await githubApi.put(`/repos/${OWNER}/${REPO}/contents/${coverEncodedPath}`, {
+      message: `docs: ${coverSha ? 'update' : 'add'} cover for book ${bookSlug}`,
+      content: coverBase64,
+      branch: 'master',
+      ...(coverSha ? { sha: coverSha } : {}),
+    });
+  }
 }
 
 // Fetch a single chapter
