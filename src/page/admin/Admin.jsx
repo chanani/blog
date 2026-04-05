@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { FiLock, FiChevronDown, FiChevronUp, FiChevronRight, FiChevronLeft, FiMessageCircle, FiMessageSquare, FiEdit3, FiCheck, FiX, FiPlus, FiFile, FiImage, FiCalendar, FiTrash2 } from 'react-icons/fi';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { saveDevPost, saveBookChapter, saveNewBook, deleteGithubFile, copyGithubFile, fetchFolderFiles, fetchDevTree, fetchBookTree, fetchDevPost, fetchChapter, fetchBookInfo } from '../../api/github';
+import { saveDevPost, saveBookChapter, saveNewBook, deleteGithubFile, copyGithubFile, fetchFolderFiles, fetchDevTree, fetchBookTree, fetchDevPost, fetchChapter, fetchBookInfo, uploadImage } from '../../api/github';
 import './Admin.css';
 
 function VisitorCard({ visitors }) {
@@ -311,9 +311,11 @@ function Toast({ toast, onDismiss }) {
   );
 }
 
-function MarkdownEditor({ value, onChange }) {
+function MarkdownEditor({ value, onChange, onImageUpload }) {
   const [mode, setMode] = useState('edit');
+  const [uploading, setUploading] = useState(false);
   const taRef = useRef(null);
+  const imgInputRef = useRef(null);
 
   const exec = useCallback((action) => {
     const ta = taRef.current;
@@ -352,6 +354,20 @@ function MarkdownEditor({ value, onChange }) {
     }
   }, [onChange]);
 
+  const handleImageSelect = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !onImageUpload) return;
+    setUploading(true);
+    try {
+      await onImageUpload(file, (snippet) => {
+        exec({ type: 'insert', text: snippet });
+      });
+    } finally {
+      setUploading(false);
+    }
+  }, [exec, onImageUpload]);
+
   const handleKeyDown = (e) => {
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -388,7 +404,6 @@ function MarkdownEditor({ value, onChange }) {
     [
       { label: '—', title: 'Horizontal Rule', action: { type: 'insert', text: '\n---\n' } },
       { label: '[링크]', title: 'Link', action: { type: 'wrap', before: '[', after: '](url)' } },
-      { label: '![이미지]', title: 'Image', action: { type: 'insert', text: '![alt](url)' } },
       { label: '⊞', title: 'Table', action: { type: 'insert', text: '| 제목 | 제목 |\n| --- | --- |\n| 내용 | 내용 |' } },
     ],
   ];
@@ -411,6 +426,26 @@ function MarkdownEditor({ value, onChange }) {
             ))}
           </div>
         ))}
+        {onImageUpload && (
+          <div className="md-toolbar-group">
+            <button
+              type="button"
+              className="md-toolbar-btn"
+              title="이미지 업로드"
+              disabled={uploading}
+              onMouseDown={(e) => { e.preventDefault(); imgInputRef.current?.click(); }}
+            >
+              {uploading ? '...' : <FiImage size={13} />}
+            </button>
+            <input
+              ref={imgInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleImageSelect}
+            />
+          </div>
+        )}
         <div className="md-toolbar-spacer" />
         <div className="md-toolbar-group">
           <button type="button" className={`md-toolbar-btn md-mode-btn${mode === 'edit' ? ' active' : ''}`} onClick={() => setMode('edit')}>편집</button>
@@ -658,12 +693,17 @@ function WritePost() {
   };
 
   const handleNewDev = () => {
+    const key = 'write_draft_dev_new';
     setEditorType('dev');
     setSelectedKey('__new_dev__');
     setDevIsNew(true);
     setDevCategory(''); setDevCategoryNew(false); setDevSlug(''); setDevTitle('');
     setDevDate(today); setDevTags(''); setDevDesc(''); setDevContent('');
     setDevCoverFile(null); setDevCoverPreview(null); setDevCoverUrl('');
+    setDraftKey(key);
+    setDraftSavedAt(null);
+    const draft = checkForDraft(key);
+    setPendingDraft(draft);
   };
 
   const handleNewBook = () => {
@@ -711,6 +751,7 @@ function WritePost() {
     if (selectedKey === key) return;
     setSelectedKey(key);
     setContentLoading(true);
+    const dKey = `write_draft_dev_${category}_${slug}`;
     try {
       const post = await fetchDevPost(category, slug);
       setDevCategory(category); setDevCategoryNew(false);
@@ -724,6 +765,10 @@ function WritePost() {
       setDevIsNew(false);
       setDevOrigCategory(category); setDevOrigSlug(slug); setDevOrigIsFolder(post.isFolder || false);
       setEditorType('dev');
+      setDraftKey(dKey);
+      setDraftSavedAt(null);
+      const draft = checkForDraft(dKey);
+      setPendingDraft(draft);
     } catch {
       setToast({ type: 'error', message: '포스트를 불러오지 못했습니다.' });
     } finally {
@@ -732,10 +777,15 @@ function WritePost() {
   };
 
   const handleNewChapter = (bSlug) => {
+    const key = `write_draft_book_${bSlug}_new`;
     setEditorType('book');
     setSelectedKey(`__new_chapter_${bSlug}__`);
     setBookChapterIsNew(true);
     setBookSlugVal(bSlug); setChapterPath(''); setBookContent('');
+    setDraftKey(key);
+    setDraftSavedAt(null);
+    const draft = checkForDraft(key);
+    setPendingDraft(draft);
   };
 
   const loadBookChapter = async (bSlug, cPath) => {
@@ -743,11 +793,16 @@ function WritePost() {
     if (selectedKey === key) return;
     setSelectedKey(key);
     setContentLoading(true);
+    const dKey = `write_draft_book_${bSlug}_${cPath}`;
     try {
       const ch = await fetchChapter(bSlug, cPath);
       setBookSlugVal(bSlug); setChapterPath(cPath); setBookContent(ch.content);
       setBookChapterIsNew(false); setBookOrigChapterPath(cPath);
       setEditorType('book');
+      setDraftKey(dKey);
+      setDraftSavedAt(null);
+      const draft = checkForDraft(dKey);
+      setPendingDraft(draft);
     } catch {
       setToast({ type: 'error', message: '챕터를 불러오지 못했습니다.' });
     } finally {
@@ -817,6 +872,7 @@ function WritePost() {
         if (newBookCoverFile) { setNewBookCoverPreview(null); setNewBookCoverFile(null); }
         fetchBookTree().then(setBookTree);
       }
+      clearDraft();
       const okMsg = editorType === 'dev'
         ? `저장 완료 — dev/${devCategory.trim()}/${devSlug.trim()}/${devSlug.trim()}.md`
         : editorType === 'book'
@@ -828,6 +884,65 @@ function WritePost() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // Draft
+  const [draftKey, setDraftKey] = useState(null);
+  const [draftSavedAt, setDraftSavedAt] = useState(null);
+  const [pendingDraft, setPendingDraft] = useState(null);
+  const draftTimerRef = useRef(null);
+
+  const saveDraft = useCallback(() => {
+    if (!draftKey || !editorType || editorType === 'new-book') return;
+    let data;
+    if (editorType === 'dev') {
+      data = { type: 'dev', category: devCategory, slug: devSlug, title: devTitle, date: devDate, tags: devTags, desc: devDesc, content: devContent, savedAt: new Date().toISOString() };
+    } else if (editorType === 'book') {
+      data = { type: 'book', bookSlug: bookSlugVal, chapterPath, content: bookContent, savedAt: new Date().toISOString() };
+    }
+    if (!data) return;
+    try {
+      localStorage.setItem(draftKey, JSON.stringify(data));
+      const time = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+      setDraftSavedAt(time);
+    } catch { /* storage full */ }
+  }, [draftKey, editorType, devCategory, devSlug, devTitle, devDate, devTags, devDesc, devContent, bookSlugVal, chapterPath, bookContent]);
+
+  const clearDraft = useCallback((key) => {
+    const k = key ?? draftKey;
+    if (k) localStorage.removeItem(k);
+    setDraftSavedAt(null);
+  }, [draftKey]);
+
+  const checkForDraft = (key) => {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch { return null; }
+  };
+
+  // Auto-save with 3s debounce
+  useEffect(() => {
+    if (!draftKey || !editorType || editorType === 'new-book') return;
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(saveDraft, 3000);
+    return () => clearTimeout(draftTimerRef.current);
+  }, [devCategory, devSlug, devTitle, devDate, devTags, devDesc, devContent, bookContent, chapterPath, saveDraft]);
+
+  const applyDraft = () => {
+    if (!pendingDraft) return;
+    if (pendingDraft.type === 'dev') {
+      if (pendingDraft.category) setDevCategory(pendingDraft.category);
+      if (pendingDraft.slug) setDevSlug(pendingDraft.slug);
+      if (pendingDraft.title) setDevTitle(pendingDraft.title);
+      if (pendingDraft.date) setDevDate(pendingDraft.date);
+      if (pendingDraft.tags !== undefined) setDevTags(pendingDraft.tags);
+      if (pendingDraft.desc !== undefined) setDevDesc(pendingDraft.desc);
+      if (pendingDraft.content) setDevContent(pendingDraft.content);
+    } else if (pendingDraft.type === 'book') {
+      if (pendingDraft.chapterPath) setChapterPath(pendingDraft.chapterPath);
+      if (pendingDraft.content) setBookContent(pendingDraft.content);
+    }
+    setPendingDraft(null);
   };
 
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -873,6 +988,31 @@ function WritePost() {
       setConfirmDelete(null);
     }
   };
+
+  const handleImageUpload = useCallback(async (file, insertSnippet) => {
+    let imagePath;
+    let relPath;
+    if (editorType === 'dev' && devCategory && devSlug) {
+      const cat = devCategory.trim();
+      const slug = devSlug.trim();
+      imagePath = `assets/images/dev/${cat}/${slug}/${file.name}`;
+      relPath = `../../../assets/images/dev/${cat}/${slug}/${file.name}`;
+    } else if (editorType === 'book' && bookSlugVal) {
+      imagePath = `assets/images/books/${bookSlugVal}/${file.name}`;
+      relPath = `../../assets/images/books/${bookSlugVal}/${file.name}`;
+    } else {
+      setToast({ type: 'error', message: '카테고리/슬러그를 먼저 입력해주세요.' });
+      return;
+    }
+    try {
+      await uploadImage({ imagePath, file });
+      const snippet = `\n<div align="center"><img src="${relPath}" alt="${file.name.replace(/\.[^.]+$/, '')}" width="500"></div>\n`;
+      insertSnippet(snippet);
+      setToast({ type: 'ok', message: `이미지 업로드 완료: ${file.name}` });
+    } catch (err) {
+      setToast({ type: 'error', message: err?.response?.data?.message || err.message || '이미지 업로드 실패' });
+    }
+  }, [editorType, devCategory, devSlug, bookSlugVal]);
 
   const toggleDev = (cat) => setExpandedDev((p) => ({ ...p, [cat]: !p[cat] }));
   const toggleBook = (bSlug) => setExpandedBooks((p) => ({ ...p, [bSlug]: !p[bSlug] }));
@@ -1004,6 +1144,22 @@ function WritePost() {
 
         {!contentLoading && editorType && (
           <form className="write-form" onSubmit={handleSubmit}>
+
+            {/* ── 임시 저장 복원 배너 ── */}
+            {pendingDraft && (
+              <div className="write-draft-banner">
+                <span className="write-draft-banner-msg">
+                  임시 저장된 초안이 있습니다
+                  <span className="write-draft-banner-time">
+                    {new Date(pendingDraft.savedAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </span>
+                <div className="write-draft-banner-btns">
+                  <button type="button" className="write-draft-restore" onClick={applyDraft}>복원</button>
+                  <button type="button" className="write-draft-discard" onClick={() => setPendingDraft(null)}>무시</button>
+                </div>
+              </div>
+            )}
 
             {/* ── 새 책 등록 폼 ── */}
             {editorType === 'new-book' && (
@@ -1187,10 +1343,23 @@ function WritePost() {
 
             {/* ── 본문 에디터 (dev / book만) ── */}
             {(editorType === 'dev' || editorType === 'book') && (
-              <MarkdownEditor value={activeContent} onChange={setActiveContent} />
+              <MarkdownEditor value={activeContent} onChange={setActiveContent} onImageUpload={handleImageUpload} />
             )}
 
             <div className="write-actions">
+              {draftSavedAt && (
+                <span className="write-draft-saved">임시 저장됨 {draftSavedAt}</span>
+              )}
+              {(editorType === 'dev' || editorType === 'book') && (
+                <button
+                  type="button"
+                  className="write-draft-btn"
+                  onClick={() => { saveDraft(); setToast({ type: 'ok', message: '임시 저장됐습니다.' }); }}
+                  disabled={saving}
+                >
+                  임시 저장
+                </button>
+              )}
               <button type="submit" className="write-submit" disabled={saving}>
                 {saving ? '저장 중...' : '저장'}
               </button>
