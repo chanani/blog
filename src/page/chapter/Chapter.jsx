@@ -928,10 +928,6 @@ function Chapter() {
                       {t('chapter.updated')} {currentChapter.updatedAt}
                     </span>
                   )}
-                <span className="chapter-date-item">
-                  <FiEye size={13} />
-                  {t('chapter.views')} {viewCount ?? 0}
-                </span>
               </div>
             )}
           </header>

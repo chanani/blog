@@ -17,7 +17,7 @@ function SortDropdown({ value, onChange }) {
   const SORT_OPTIONS = [
     { value: 'latest', label: t('blog.sortLatest') },
     { value: 'oldest', label: t('blog.sortOldest') },
-    { value: 'views', label: t('blog.sortViews') },
+
     { value: 'comments', label: t('blog.sortComments') },
   ];
   const selected = SORT_OPTIONS.find((o) => o.value === value);
@@ -79,10 +79,7 @@ function PostItem({ post, index, commentCount, viewCount }) {
                 {post.date}
               </span>
             )}
-            <span className="post-meta-item">
-              <FiEye size={11} />
-              {viewCount ?? 0}
-            </span>
+
             {commentCount > 0 && (
               <span className="post-meta-item">
                 <FiMessageSquare size={11} />

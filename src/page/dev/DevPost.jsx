@@ -423,10 +423,6 @@ function DevPost() {
                       {t('post.updated')} {currentPost.updatedAt}
                     </span>
                   )}
-                  <span className="devpost-date">
-                    <FiEye size={13} />
-                    {t('post.views')} {viewCount ?? 0}
-                  </span>
                 </div>
                 <h1 className="devpost-title">{currentPost.title}</h1>
                 {currentPost.tags && currentPost.tags.length > 0 && (
