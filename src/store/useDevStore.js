@@ -1,9 +1,10 @@
 import { create } from 'zustand';
-import { fetchDevPostList, fetchDevPost, fetchDevDiscussionCounts } from '../api/github';
+import { fetchDevPostList, fetchDevPost, fetchDevDiscussionCounts, fetchSeriesInfo, fetchSeriesEpisode } from '../api/github';
 
 const useDevStore = create((set, get) => ({
   posts: [],
   currentPost: null,
+  currentSeries: null,
   loading: false,
   error: null,
   selectedCategory: 'all',
@@ -24,13 +25,28 @@ const useDevStore = create((set, get) => ({
     }
   },
 
-  loadPost: async (category, slug) => {
+  loadPost: async (category, slug, seriesSlug = null) => {
     const cached = get().currentPost;
-    if (cached && cached.slug === slug && cached.category === category) return;
+    const cacheKey = seriesSlug ? `${category}/${seriesSlug}/${slug}` : `${category}/${slug}`;
+    if (cached && cached._cacheKey === cacheKey) return;
     set({ loading: true, error: null, currentPost: null });
     try {
-      const post = await fetchDevPost(category, slug);
-      set({ currentPost: post, loading: false });
+      const post = seriesSlug
+        ? await fetchSeriesEpisode(category, seriesSlug, slug)
+        : await fetchDevPost(category, slug);
+      set({ currentPost: { ...post, _cacheKey: cacheKey }, loading: false });
+    } catch (error) {
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  loadSeries: async (category, seriesSlug) => {
+    const cached = get().currentSeries;
+    if (cached && cached.slug === seriesSlug && cached.category === category) return;
+    set({ loading: true, error: null, currentSeries: null });
+    try {
+      const series = await fetchSeriesInfo(category, seriesSlug);
+      set({ currentSeries: series, loading: false });
     } catch (error) {
       set({ error: error.message, loading: false });
     }
@@ -39,6 +55,7 @@ const useDevStore = create((set, get) => ({
   setCategory: (category) => set({ selectedCategory: category }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   clearPost: () => set({ currentPost: null }),
+  clearSeries: () => set({ currentSeries: null }),
 
   refreshPosts: () => {
     set({ posts: [] });
@@ -62,9 +79,7 @@ const useDevStore = create((set, get) => ({
 
   getCategories: () => {
     const { posts } = get();
-    const categories = [
-      ...new Set(posts.map((p) => p.category).filter(Boolean)),
-    ];
+    const categories = [...new Set(posts.map((p) => p.category).filter(Boolean))];
     return ['all', ...categories.sort()];
   },
 

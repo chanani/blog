@@ -222,25 +222,26 @@
 .post-list {
   display: flex;
   flex-direction: column;
+  gap: 0;
 }
 
 /* Post Item */
-.post-list > div {
+.post-list > div:not(.series-card-wrap) {
   width: 100%;
   border-top: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   transition: background 0.25s ease;
 }
 
-.post-list > div:first-child {
+.post-list > div:not(.series-card-wrap):first-child {
   border-top: none;
 }
 
-.post-list > div:hover {
+.post-list > div:not(.series-card-wrap):hover {
   background: var(--accent-light);
 }
 
-.post-list > div:hover + div {
+.post-list > div:not(.series-card-wrap):hover + div {
   border-top-color: transparent;
 }
 
@@ -383,6 +384,57 @@
   border-color: var(--accent-primary);
 }
 
+/* ── Series Card ── */
+.series-card-wrap {
+  width: 100%;
+  border-top: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: background 0.25s ease;
+}
+
+.series-card-wrap:first-child {
+  border-top: none;
+}
+
+.series-card-wrap:hover + div {
+  border-top-color: transparent;
+}
+
+.series-meta-badge {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent-primary);
+  background: var(--accent-light);
+  padding: 2px 7px;
+  border-radius: 20px;
+}
+
+.series-card {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  padding: 20px 12px 20px 16px;
+  border-left: 3px solid var(--accent-primary);
+  background: var(--bg-secondary);
+  transition: background 0.25s ease;
+}
+
+.series-card-wrap:hover .series-card {
+  background: var(--accent-light);
+}
+
+.sidebar-series-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  margin-left: 4px;
+  vertical-align: middle;
+  opacity: 0.7;
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .blog-layout {
@@ -459,6 +511,10 @@
   .post-item {
     padding: 16px 0;
   }
+
+  .series-card {
+    padding: 16px 0 16px 14px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -474,5 +530,14 @@
 
   .post-item-desc {
     display: none;
+  }
+
+  .series-card {
+    gap: 12px;
+    padding: 14px 0 14px 12px;
+  }
+
+  .series-meta-badge {
+    font-size: 0.62rem;
   }
 }

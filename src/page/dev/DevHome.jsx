@@ -104,6 +104,50 @@ function PostItem({ post, index, commentCount, viewCount }) {
   );
 }
 
+function SeriesItem({ post, index }) {
+  const [imgError, setImgError] = useState(false);
+  const lang = useLang();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: index * 0.04 }}
+      className="series-card-wrap"
+    >
+      <Link to={`/${lang}/series/${post.category}/${post.slug}`} className="series-card">
+        <div className="post-thumb">
+          <img
+            src={!imgError && post.cover ? post.cover : defaultCover}
+            alt={post.title}
+            onError={() => setImgError(true)}
+          />
+        </div>
+        <div className="post-item-body">
+          <div className="post-item-meta">
+            <span className="post-cat-badge">{post.category}</span>
+            <span className="series-meta-badge">SERIES · {post.episodeCount || 0}편</span>
+            {post.date && (
+              <span className="post-meta-item">
+                <FiCalendar size={11} />
+                {post.date}
+              </span>
+            )}
+          </div>
+          <h3 className="post-item-title">{post.title}</h3>
+          {post.tags && post.tags.length > 0 && (
+            <div className="post-item-tags">
+              {post.tags.map((tag) => (
+                <span key={tag} className="post-item-tag">#{tag}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
+
 function DevHome() {
   const { t } = useTranslation();
   const lang = useLang();
@@ -264,13 +308,15 @@ function DevHome() {
             <>
               <div className="post-list">
                 {paginatedPosts.map((post, index) => (
-                  <PostItem
-                    key={`${post.category}/${post.slug}`}
-                    post={post}
-                    index={index}
-                    commentCount={commentCounts[`${post.category}/${post.slug}`] || 0}
-                    viewCount={viewCounts[`${post.category}/${post.slug}`] ?? 0}
-                  />
+                  post.isSeries
+                    ? <SeriesItem key={`series/${post.category}/${post.slug}`} post={post} index={index} />
+                    : <PostItem
+                        key={`${post.category}/${post.slug}`}
+                        post={post}
+                        index={index}
+                        commentCount={commentCounts[`${post.category}/${post.slug}`] || 0}
+                        viewCount={viewCounts[`${post.category}/${post.slug}`] ?? 0}
+                      />
                 ))}
               </div>
 

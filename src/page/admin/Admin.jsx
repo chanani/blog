@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { FiLock, FiChevronDown, FiChevronUp, FiChevronRight, FiChevronLeft, FiMessageCircle, FiMessageSquare, FiEdit3, FiCheck, FiX, FiPlus, FiFile, FiImage, FiCalendar, FiTrash2 } from 'react-icons/fi';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { saveDevPost, saveBookChapter, saveNewBook, deleteGithubFile, copyGithubFile, fetchFolderFiles, fetchDevTree, fetchBookTree, fetchDevPost, fetchChapter, fetchBookInfo, uploadImage } from '../../api/github';
+import { saveDevPost, saveBookChapter, saveNewBook, deleteGithubFile, copyGithubFile, fetchFolderFiles, fetchDevTree, fetchBookTree, fetchDevPost, fetchChapter, fetchBookInfo, uploadImage, saveSeriesInfo, saveSeriesEpisode, fetchSeriesInfo, fetchSeriesEpisode } from '../../api/github';
 import './Admin.css';
 
 function VisitorCard({ visitors }) {
@@ -625,7 +625,7 @@ function WritePost() {
   const [expandedBooks, setExpandedBooks] = useState({});
   const [selectedKey, setSelectedKey] = useState(null);
 
-  // Editor type: null | 'dev' | 'book' | 'new-book'
+  // Editor type: null | 'dev' | 'book' | 'new-book' | 'series' | 'episode'
   const [editorType, setEditorType] = useState(null);
   const [contentLoading, setContentLoading] = useState(false);
   const [toast, setToast] = useState(null);
@@ -655,6 +655,20 @@ function WritePost() {
   const [bookChapterIsNew, setBookChapterIsNew] = useState(false);
   const [bookOrigChapterPath, setBookOrigChapterPath] = useState('');
 
+  // Series fields — structure: dev/{category}/{seriesSlug}/info.json
+  const [seriesCategory, setSeriesCategory] = useState('');
+  const [seriesSlugField, setSeriesSlugField] = useState('');
+  const [seriesTitle, setSeriesTitle] = useState('');
+  const [seriesDesc, setSeriesDesc] = useState('');
+  const [seriesStatus, setSeriesStatus] = useState('연재중');
+  const [seriesTags, setSeriesTags] = useState('');
+  const [seriesCoverFile, setSeriesCoverFile] = useState(null);
+  const [seriesCoverPreview, setSeriesCoverPreview] = useState(null);
+  const [seriesCoverUrl, setSeriesCoverUrl] = useState('');
+  const [seriesIsNew, setSeriesIsNew] = useState(false);
+  const [episodeNum, setEpisodeNum] = useState('');
+  const [expandedSeries, setExpandedSeries] = useState({});
+
   // New book fields — structure: books/{bookSlug}/info.json + cover.{ext}
   const [newBookSlug, setNewBookSlug] = useState('');
   const [newBookTitle, setNewBookTitle] = useState('');
@@ -681,8 +695,8 @@ function WritePost() {
     });
   }, []);
 
-  const activeContent = editorType === 'dev' ? devContent : bookContent;
-  const setActiveContent = editorType === 'dev' ? setDevContent : setBookContent;
+  const activeContent = (editorType === 'dev' || editorType === 'episode') ? devContent : bookContent;
+  const setActiveContent = (editorType === 'dev' || editorType === 'episode') ? setDevContent : setBookContent;
 
   const handleCoverChange = (setter, previewSetter, prevPreview) => (e) => {
     const file = e.target.files[0];
@@ -810,6 +824,77 @@ function WritePost() {
     }
   };
 
+  const handleNewSeries = () => {
+    const key = 'write_draft_series_new';
+    setEditorType('series');
+    setSelectedKey('__new_series__');
+    setSeriesIsNew(true);
+    setSeriesCategory(''); setSeriesSlugField(''); setSeriesTitle('');
+    setSeriesDesc(''); setSeriesStatus('연재중'); setSeriesTags('');
+    setSeriesCoverFile(null); setSeriesCoverPreview(null); setSeriesCoverUrl('');
+    setDraftKey(key); setDraftSavedAt(null); setPendingDraft(checkForDraft(key));
+  };
+
+  const loadSeriesInfoAdmin = async (category, slug) => {
+    const key = `series/${category}/${slug}`;
+    if (selectedKey === key) return;
+    setSelectedKey(key);
+    setContentLoading(true);
+    const dKey = `write_draft_series_${category}_${slug}`;
+    try {
+      const info = await fetchSeriesInfo(category, slug);
+      setSeriesCategory(category); setSeriesSlugField(slug);
+      setSeriesTitle(info.title || ''); setSeriesDesc(info.description || '');
+      setSeriesStatus(info.status || '연재중');
+      setSeriesTags(Array.isArray(info.tags) ? info.tags.join(', ') : '');
+      setSeriesCoverFile(null); setSeriesCoverPreview(null); setSeriesCoverUrl(info.cover || '');
+      setSeriesIsNew(false);
+      setEditorType('series');
+      setDraftKey(dKey); setDraftSavedAt(null); setPendingDraft(checkForDraft(dKey));
+    } catch {
+      setToast({ type: 'error', message: '시리즈 정보를 불러오지 못했습니다.' });
+    } finally {
+      setContentLoading(false);
+    }
+  };
+
+  const handleNewEpisode = (category, serSlug) => {
+    const key = `__new_episode_${category}_${serSlug}__`;
+    setEditorType('episode');
+    setSelectedKey(key);
+    setSeriesCategory(category); setSeriesSlugField(serSlug);
+    setDevCategory(category); setDevSlug(''); setDevTitle('');
+    setDevDate(today); setDevTags(''); setDevDesc(''); setDevContent('');
+    setEpisodeNum('');
+    const dKey = `write_draft_episode_${category}_${serSlug}_new`;
+    setDraftKey(dKey); setDraftSavedAt(null); setPendingDraft(checkForDraft(dKey));
+  };
+
+  const loadEpisodeAdmin = async (category, serSlug, epSlug) => {
+    const key = `episode/${category}/${serSlug}/${epSlug}`;
+    if (selectedKey === key) return;
+    setSelectedKey(key);
+    setContentLoading(true);
+    const dKey = `write_draft_episode_${category}_${serSlug}_${epSlug}`;
+    try {
+      const ep = await fetchSeriesEpisode(category, serSlug, epSlug);
+      setSeriesCategory(category); setSeriesSlugField(serSlug);
+      setDevCategory(category); setDevSlug(epSlug);
+      setDevTitle(ep.title || ''); setDevDate(ep.date || today);
+      setDevTags(Array.isArray(ep.tags) ? ep.tags.join(', ') : '');
+      setDevDesc(ep.description || ''); setDevContent(ep.content || '');
+      setEpisodeNum(ep.episode != null ? String(ep.episode) : '');
+      setEditorType('episode');
+      setDraftKey(dKey); setDraftSavedAt(null); setPendingDraft(checkForDraft(dKey));
+    } catch {
+      setToast({ type: 'error', message: '에피소드를 불러오지 못했습니다.' });
+    } finally {
+      setContentLoading(false);
+    }
+  };
+
+  const toggleSeriesExpand = (key) => setExpandedSeries((p) => ({ ...p, [key]: !p[key] }));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -871,13 +956,38 @@ function WritePost() {
         });
         if (newBookCoverFile) { setNewBookCoverPreview(null); setNewBookCoverFile(null); }
         fetchBookTree().then(setBookTree);
+      } else if (editorType === 'series') {
+        if (!seriesCategory.trim() || !seriesSlugField.trim() || !seriesTitle.trim()) { setSaving(false); return; }
+        const tagList = seriesTags.split(',').map((t) => t.trim()).filter(Boolean);
+        await saveSeriesInfo({
+          category: seriesCategory.trim(), seriesSlug: seriesSlugField.trim(),
+          title: seriesTitle.trim(), description: seriesDesc.trim(),
+          status: seriesStatus, tags: tagList, coverFile: seriesCoverFile,
+        });
+        if (seriesCoverFile) { setSeriesCoverUrl(seriesCoverPreview || ''); setSeriesCoverFile(null); }
+        setSeriesIsNew(false);
+        fetchDevTree().then(setDevTree);
+      } else if (editorType === 'episode') {
+        if (!seriesCategory || !seriesSlugField || !devSlug.trim() || !devTitle.trim() || !devContent.trim()) { setSaving(false); return; }
+        const tagList = devTags.split(',').map((t) => t.trim()).filter(Boolean);
+        await saveSeriesEpisode({
+          category: seriesCategory, seriesSlug: seriesSlugField,
+          episodeSlug: devSlug.trim(), title: devTitle.trim(), date: devDate,
+          episode: episodeNum ? Number(episodeNum) : null,
+          tags: tagList, description: devDesc.trim(), content: devContent,
+        });
+        fetchDevTree().then(setDevTree);
       }
       clearDraft();
       const okMsg = editorType === 'dev'
         ? `저장 완료 — dev/${devCategory.trim()}/${devSlug.trim()}/${devSlug.trim()}.md`
         : editorType === 'book'
           ? `저장 완료 — books/${bookSlugVal}/${chapterPath.trim()}.md`
-          : `${newBookIsEdit ? '수정' : '저장'} 완료 — books/${newBookSlug.trim()}/info.json`;
+          : editorType === 'series'
+            ? `저장 완료 — dev/${seriesCategory.trim()}/${seriesSlugField.trim()}/info.json`
+            : editorType === 'episode'
+              ? `저장 완료 — dev/${seriesCategory}/${seriesSlugField}/${devSlug.trim()}.md`
+              : `${newBookIsEdit ? '수정' : '저장'} 완료 — books/${newBookSlug.trim()}/info.json`;
       setToast({ type: 'ok', message: okMsg });
     } catch (err) {
       setToast({ type: 'error', message: err?.response?.data?.message || err.message || '저장 실패' });
@@ -893,12 +1003,14 @@ function WritePost() {
   const draftTimerRef = useRef(null);
 
   const saveDraft = useCallback(() => {
-    if (!draftKey || !editorType || editorType === 'new-book') return;
+    if (!draftKey || !editorType || editorType === 'new-book' || editorType === 'series') return;
     let data;
     if (editorType === 'dev') {
       data = { type: 'dev', category: devCategory, slug: devSlug, title: devTitle, date: devDate, tags: devTags, desc: devDesc, content: devContent, savedAt: new Date().toISOString() };
     } else if (editorType === 'book') {
       data = { type: 'book', bookSlug: bookSlugVal, chapterPath, content: bookContent, savedAt: new Date().toISOString() };
+    } else if (editorType === 'episode') {
+      data = { type: 'episode', seriesCategory, seriesSlugField, slug: devSlug, title: devTitle, date: devDate, tags: devTags, desc: devDesc, content: devContent, episode: episodeNum, savedAt: new Date().toISOString() };
     }
     if (!data) return;
     try {
@@ -922,11 +1034,11 @@ function WritePost() {
 
   // Auto-save with 3s debounce
   useEffect(() => {
-    if (!draftKey || !editorType || editorType === 'new-book') return;
+    if (!draftKey || !editorType || editorType === 'new-book' || editorType === 'series') return;
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     draftTimerRef.current = setTimeout(saveDraft, 3000);
     return () => clearTimeout(draftTimerRef.current);
-  }, [devCategory, devSlug, devTitle, devDate, devTags, devDesc, devContent, bookContent, chapterPath, saveDraft]);
+  }, [devCategory, devSlug, devTitle, devDate, devTags, devDesc, devContent, bookContent, chapterPath, episodeNum, saveDraft]);
 
   const applyDraft = () => {
     if (!pendingDraft) return;
@@ -941,6 +1053,14 @@ function WritePost() {
     } else if (pendingDraft.type === 'book') {
       if (pendingDraft.chapterPath) setChapterPath(pendingDraft.chapterPath);
       if (pendingDraft.content) setBookContent(pendingDraft.content);
+    } else if (pendingDraft.type === 'episode') {
+      if (pendingDraft.slug) setDevSlug(pendingDraft.slug);
+      if (pendingDraft.title) setDevTitle(pendingDraft.title);
+      if (pendingDraft.date) setDevDate(pendingDraft.date);
+      if (pendingDraft.tags !== undefined) setDevTags(pendingDraft.tags);
+      if (pendingDraft.desc !== undefined) setDevDesc(pendingDraft.desc);
+      if (pendingDraft.content) setDevContent(pendingDraft.content);
+      if (pendingDraft.episode !== undefined) setEpisodeNum(pendingDraft.episode || '');
     }
     setPendingDraft(null);
   };
@@ -1000,6 +1120,9 @@ function WritePost() {
     } else if (editorType === 'book' && bookSlugVal) {
       imagePath = `assets/images/books/${bookSlugVal}/${file.name}`;
       relPath = `../../assets/images/books/${bookSlugVal}/${file.name}`;
+    } else if (editorType === 'episode' && seriesCategory && seriesSlugField && devSlug) {
+      imagePath = `assets/images/dev/${seriesCategory}/${seriesSlugField}/${devSlug.trim()}/${file.name}`;
+      relPath = `../../../../assets/images/dev/${seriesCategory}/${seriesSlugField}/${devSlug.trim()}/${file.name}`;
     } else {
       setToast({ type: 'error', message: '카테고리/슬러그를 먼저 입력해주세요.' });
       return;
@@ -1012,7 +1135,7 @@ function WritePost() {
     } catch (err) {
       setToast({ type: 'error', message: err?.response?.data?.message || err.message || '이미지 업로드 실패' });
     }
-  }, [editorType, devCategory, devSlug, bookSlugVal]);
+  }, [editorType, devCategory, devSlug, seriesCategory, seriesSlugField, bookSlugVal]);
 
   const toggleDev = (cat) => setExpandedDev((p) => ({ ...p, [cat]: !p[cat] }));
   const toggleBook = (bSlug) => setExpandedBooks((p) => ({ ...p, [bSlug]: !p[bSlug] }));
@@ -1032,7 +1155,12 @@ function WritePost() {
           <>
             {/* 블로그 트리 */}
             <div className="write-tree-section">
-              <div className="write-tree-label">블로그</div>
+              <div className="write-tree-section-header">
+                <div className="write-tree-label">블로그</div>
+                <button className="write-tree-add-book" onClick={handleNewSeries} title="새 시리즈">
+                  <FiList size={11} /> 새 시리즈
+                </button>
+              </div>
               {devTree.map(({ category, slugs }) => (
                 <div key={category} className="write-tree-group">
                   <button className="write-tree-cat" onClick={() => toggleDev(category)}>
@@ -1042,24 +1170,73 @@ function WritePost() {
                   </button>
                   {expandedDev[category] && (
                     <ul className="write-tree-files">
-                      {slugs.map((slug) => (
-                        <li key={slug} className="write-tree-file-row">
-                          <button
-                            className={`write-tree-file${selectedKey === `dev/${category}/${slug}` ? ' active' : ''}`}
-                            onClick={() => loadDevPost(category, slug)}
-                          >
-                            <FiFile size={11} />
-                            <span className="write-tree-name">{slug}</span>
-                          </button>
-                          <button
-                            className="write-tree-del"
-                            title="삭제"
-                            onClick={(e) => { e.stopPropagation(); setConfirmDelete({ type: 'dev', category, slug, label: `${category}/${slug}` }); }}
-                          >
-                            <FiTrash2 size={10} />
-                          </button>
-                        </li>
-                      ))}
+                      {slugs.map((item) => {
+                        const slugName = item.name ?? item;
+                        const isSeries = item.isSeries ?? false;
+                        const seriesKey = `${category}/${slugName}`;
+                        if (isSeries) {
+                          return (
+                            <li key={slugName}>
+                              <div className="write-tree-file-row">
+                                <button
+                                  className={`write-tree-file${selectedKey === `series/${seriesKey}` ? ' active' : ''}`}
+                                  onClick={() => loadSeriesInfoAdmin(category, slugName)}
+                                >
+                                  <FiList size={11} />
+                                  <span className="write-tree-name">{slugName}</span>
+                                </button>
+                                <button className="write-tree-expand-btn" title="에피소드 목록" onClick={(e) => { e.stopPropagation(); toggleSeriesExpand(seriesKey); }}>
+                                  {expandedSeries[seriesKey] ? <FiChevronDown size={10} /> : <FiChevronRight size={10} />}
+                                </button>
+                                <button className="write-tree-del" title="삭제" onClick={(e) => { e.stopPropagation(); setConfirmDelete({ type: 'dev', category, slug: slugName, label: `${category}/${slugName}` }); }}>
+                                  <FiTrash2 size={10} />
+                                </button>
+                              </div>
+                              {expandedSeries[seriesKey] && (
+                                <ul className="write-tree-files write-tree-episodes">
+                                  {(item.episodes || []).map((ep) => (
+                                    <li key={ep} className="write-tree-file-row">
+                                      <button
+                                        className={`write-tree-file${selectedKey === `episode/${seriesKey}/${ep}` ? ' active' : ''}`}
+                                        onClick={() => loadEpisodeAdmin(category, slugName, ep)}
+                                      >
+                                        <FiFile size={11} />
+                                        <span className="write-tree-name">{ep}</span>
+                                      </button>
+                                      <button className="write-tree-del" title="삭제" onClick={(e) => { e.stopPropagation(); setConfirmDelete({ type: 'dev', category: `${category}/${slugName}`, slug: ep, label: `${category}/${slugName}/${ep}` }); }}>
+                                        <FiTrash2 size={10} />
+                                      </button>
+                                    </li>
+                                  ))}
+                                  <li>
+                                    <button className="write-tree-new-ep" onClick={() => handleNewEpisode(category, slugName)}>
+                                      <FiPlus size={10} /> 새 에피소드
+                                    </button>
+                                  </li>
+                                </ul>
+                              )}
+                            </li>
+                          );
+                        }
+                        return (
+                          <li key={slugName} className="write-tree-file-row">
+                            <button
+                              className={`write-tree-file${selectedKey === `dev/${category}/${slugName}` ? ' active' : ''}`}
+                              onClick={() => loadDevPost(category, slugName)}
+                            >
+                              <FiFile size={11} />
+                              <span className="write-tree-name">{slugName}</span>
+                            </button>
+                            <button
+                              className="write-tree-del"
+                              title="삭제"
+                              onClick={(e) => { e.stopPropagation(); setConfirmDelete({ type: 'dev', category, slug: slugName, label: `${category}/${slugName}` }); }}
+                            >
+                              <FiTrash2 size={10} />
+                            </button>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </div>
@@ -1341,8 +1518,108 @@ function WritePost() {
               </>
             )}
 
-            {/* ── 본문 에디터 (dev / book만) ── */}
-            {(editorType === 'dev' || editorType === 'book') && (
+            {/* ── 시리즈 info 폼 ── */}
+            {editorType === 'series' && (
+              <>
+                <div className="write-section-title">{seriesIsNew ? '새 시리즈 등록' : `시리즈 수정 — ${seriesSlugField}`}</div>
+                <div className="write-meta-row">
+                  <div className="write-field">
+                    <label className="write-label">카테고리 *</label>
+                    <input className="write-input" placeholder="예: spring" value={seriesCategory} onChange={(e) => setSeriesCategory(e.target.value)} readOnly={!seriesIsNew} required />
+                  </div>
+                  <div className="write-field">
+                    <label className="write-label">폴더명 (slug) *</label>
+                    <input className="write-input" placeholder="예: jvm-deep-dive" value={seriesSlugField} onChange={(e) => setSeriesSlugField(e.target.value)} readOnly={!seriesIsNew} required />
+                  </div>
+                </div>
+                <div className="write-field">
+                  <label className="write-label">시리즈 제목 *</label>
+                  <input className="write-input" placeholder="예: JVM Deep Dive" value={seriesTitle} onChange={(e) => setSeriesTitle(e.target.value)} required />
+                </div>
+                <div className="write-field">
+                  <label className="write-label">설명</label>
+                  <input className="write-input" placeholder="시리즈 간단 설명" value={seriesDesc} onChange={(e) => setSeriesDesc(e.target.value)} />
+                </div>
+                <div className="write-meta-row">
+                  <div className="write-field">
+                    <label className="write-label">상태</label>
+                    <CustomSelect
+                      value={seriesStatus}
+                      onChange={setSeriesStatus}
+                      options={[{ value: '연재중', label: '연재중' }, { value: '완결', label: '완결' }]}
+                    />
+                  </div>
+                  <div className="write-field" style={{ flex: 2 }}>
+                    <label className="write-label">태그 (쉼표 구분)</label>
+                    <input className="write-input" placeholder="예: JVM, Java, 백엔드" value={seriesTags} onChange={(e) => setSeriesTags(e.target.value)} />
+                  </div>
+                </div>
+                <div className="write-field">
+                  <label className="write-label">커버 이미지</label>
+                  <CoverUpload
+                    preview={seriesCoverPreview}
+                    url={seriesCoverUrl}
+                    onChange={handleCoverChange(setSeriesCoverFile, setSeriesCoverPreview, seriesCoverPreview)}
+                  />
+                </div>
+                {seriesCategory && seriesSlugField && (
+                  <div className="write-book-path-hint">
+                    저장 위치: <code>dev/{seriesCategory}/{seriesSlugField}/info.json</code>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ── 에피소드 폼 ── */}
+            {editorType === 'episode' && (
+              <>
+                <div className="write-section-title">
+                  에피소드 — <span style={{ color: 'var(--accent-primary)' }}>{seriesSlugField}</span>
+                </div>
+                <div className="write-meta-row">
+                  <div className="write-field write-field-readonly">
+                    <label className="write-label">시리즈</label>
+                    <input className="write-input" value={`${seriesCategory} / ${seriesSlugField}`} readOnly />
+                  </div>
+                  <div className="write-field write-field-sm">
+                    <label className="write-label">EP 번호</label>
+                    <input className="write-input" type="number" min="1" placeholder="1" value={episodeNum} onChange={(e) => setEpisodeNum(e.target.value)} />
+                  </div>
+                  <div className="write-field" style={{ flex: 2 }}>
+                    <label className="write-label">에피소드 파일명 (slug) *</label>
+                    <input className="write-input" placeholder="예: ep1-jvm-intro" value={devSlug} onChange={(e) => setDevSlug(e.target.value)} required />
+                  </div>
+                </div>
+                <div className="write-meta-row">
+                  <div className="write-field" style={{ flex: 2 }}>
+                    <label className="write-label">제목 *</label>
+                    <input className="write-input" placeholder="예: [JVM] EP.1 JVM이란 무엇인가" value={devTitle} onChange={(e) => setDevTitle(e.target.value)} required />
+                  </div>
+                  <div className="write-field">
+                    <label className="write-label">날짜</label>
+                    <DatePicker value={devDate} onChange={setDevDate} />
+                  </div>
+                </div>
+                <div className="write-meta-row">
+                  <div className="write-field">
+                    <label className="write-label">태그 (쉼표 구분)</label>
+                    <input className="write-input" placeholder="예: JVM, Java" value={devTags} onChange={(e) => setDevTags(e.target.value)} />
+                  </div>
+                  <div className="write-field" style={{ flex: 2 }}>
+                    <label className="write-label">설명</label>
+                    <input className="write-input" placeholder="에피소드 간단 설명" value={devDesc} onChange={(e) => setDevDesc(e.target.value)} />
+                  </div>
+                </div>
+                {seriesCategory && seriesSlugField && devSlug && (
+                  <div className="write-book-path-hint">
+                    저장 위치: <code>dev/{seriesCategory}/{seriesSlugField}/{devSlug}/{devSlug}.md</code>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ── 본문 에디터 (dev / book / episode) ── */}
+            {(editorType === 'dev' || editorType === 'book' || editorType === 'episode') && (
               <MarkdownEditor value={activeContent} onChange={setActiveContent} onImageUpload={handleImageUpload} />
             )}
 
@@ -1350,7 +1627,7 @@ function WritePost() {
               {draftSavedAt && (
                 <span className="write-draft-saved">임시 저장됨 {draftSavedAt}</span>
               )}
-              {(editorType === 'dev' || editorType === 'book') && (
+              {(editorType === 'dev' || editorType === 'book' || editorType === 'episode') && (
                 <button
                   type="button"
                   className="write-draft-btn"

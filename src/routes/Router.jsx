@@ -5,6 +5,7 @@ import Dashboard from '../page/dashboard/Dashboard';
 
 const DevHome = lazy(() => import('../page/dev/DevHome'));
 const DevPost = lazy(() => import('../page/dev/DevPost'));
+const Series = lazy(() => import('../page/dev/Series'));
 const Home = lazy(() => import('../page/home/Home'));
 const Book = lazy(() => import('../page/book/Book'));
 const Chapter = lazy(() => import('../page/chapter/Chapter'));
@@ -59,6 +60,8 @@ function Router() {
           <Route index element={<Dashboard />} />
           <Route path="posts" element={<DevHome />} />
           <Route path="post/:category/:slug" element={<DevPost />} />
+          <Route path="post/:category/:seriesSlug/:episodeSlug" element={<DevPost />} />
+          <Route path="series/:category/:seriesSlug" element={<Series />} />
           <Route path="books" element={<Home />} />
           <Route path="books/reading" element={<Reading />} />
           <Route path="about" element={<About />} />

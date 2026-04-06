@@ -73,12 +73,14 @@ function CodeBlock({ language, children }) {
 }
 
 function DevPost() {
-  const { category, slug } = useParams();
+  const { category, slug, seriesSlug, episodeSlug } = useParams();
+  const isEpisode = !!episodeSlug;
+  const effectiveSlug = isEpisode ? episodeSlug : slug;
   const navigate = useNavigate();
   const lang = useLang();
   const { t } = useTranslation();
   const { currentPost, loading, error, loadPost, clearPost, getPostNav } = useDevStore();
-  const { prev, next } = getPostNav(category, slug);
+  const { prev, next } = getPostNav(category, effectiveSlug);
   const [giscusTheme, setGiscusTheme] = useState(
     () => document.documentElement.getAttribute('data-theme') || 'light',
   );
@@ -277,12 +279,12 @@ function DevPost() {
   };
 
   useEffect(() => {
-    if (category && slug) {
-      loadPost(category, slug);
-      fetchViewCount(`/post/${category}/${slug}`).then(setViewCount);
+    if (category && effectiveSlug) {
+      loadPost(category, effectiveSlug, isEpisode ? seriesSlug : null);
+      fetchViewCount(`/post/${category}/${isEpisode ? `${seriesSlug}/${effectiveSlug}` : effectiveSlug}`).then(setViewCount);
     }
     return () => clearPost();
-  }, [category, slug, loadPost, clearPost]);
+  }, [category, slug, seriesSlug, episodeSlug, loadPost, clearPost]);
 
   useEffect(() => {
     const observer = new MutationObserver(() => {

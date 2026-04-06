@@ -568,11 +568,34 @@ export async function fetchDevPostList() {
                 return;
               }
 
-              // Case 2: folder with any .md + optional cover image
+              // Case 2: folder with any .md + optional cover image, OR series folder (has info.json)
               if (entry.type === 'dir') {
                 const { data: folderFiles } = await githubApi.get(
                   `/repos/${OWNER}/${REPO}/contents/${DEV_PATH}/${encodeURIComponent(catName)}/${encodeURIComponent(entryName)}`,
                 );
+
+                // Series detection: folder contains info.json
+                const hasInfoJson = folderFiles.some((f) => f.name === 'info.json');
+                if (hasInfoJson) {
+                  const { data: infoData } = await githubApi.get(
+                    `/repos/${OWNER}/${REPO}/contents/${DEV_PATH}/${encodeURIComponent(catName)}/${encodeURIComponent(entryName)}/info.json`,
+                  );
+                  const info = JSON.parse(decodeBase64(infoData.content));
+                  const episodeDirs = folderFiles.filter((f) => f.type === 'dir');
+                  posts.push({
+                    isSeries: true,
+                    slug: entryName,
+                    category: catName,
+                    title: info.title || entryName,
+                    description: info.description || '',
+                    cover: findCover(folderFiles) || '',
+                    status: info.status || '연재중',
+                    episodeCount: episodeDirs.length,
+                    date: info.updatedAt || '',
+                    tags: Array.isArray(info.tags) ? info.tags : [],
+                  });
+                  return;
+                }
 
                 const mdFile = findMarkdown(folderFiles);
                 if (!mdFile) return;
@@ -706,12 +729,31 @@ export async function fetchDevTree() {
           const { data: entries } = await githubApi.get(
             `/repos/${OWNER}/${REPO}/contents/${DEV_PATH}/${encodeURIComponent(catName)}`,
           );
-          const slugs = entries
-            .filter((e) => {
-              const eName = decodeGitQuotedName(e.name);
-              return (e.type === 'file' && eName.endsWith('.md')) || e.type === 'dir';
-            })
-            .map((e) => decodeGitQuotedName(e.name).replace(/\.md$/, ''));
+          const eligible = entries.filter((e) => {
+            const eName = decodeGitQuotedName(e.name);
+            return (e.type === 'file' && eName.endsWith('.md')) || e.type === 'dir';
+          });
+
+          const slugs = await Promise.all(
+            eligible.map(async (e) => {
+              const eName = decodeGitQuotedName(e.name).replace(/\.md$/, '');
+              if (e.type !== 'dir') return { name: eName, isSeries: false };
+              try {
+                const { data: slugFiles } = await githubApi.get(
+                  `/repos/${OWNER}/${REPO}/contents/${DEV_PATH}/${encodeURIComponent(catName)}/${encodeURIComponent(eName)}`,
+                );
+                const hasInfoJson = slugFiles.some((f) => f.name === 'info.json');
+                if (hasInfoJson) {
+                  const episodes = slugFiles
+                    .filter((f) => f.type === 'dir')
+                    .map((f) => decodeGitQuotedName(f.name));
+                  return { name: eName, isSeries: true, episodes };
+                }
+              } catch { /* skip */ }
+              return { name: eName, isSeries: false };
+            }),
+          );
+
           return { category: catName, slugs };
         } catch {
           return { category: catName, slugs: [] };
@@ -880,6 +922,181 @@ export async function uploadImage({ imagePath, file }) {
     branch: 'master',
     ...(sha ? { sha } : {}),
   });
+}
+
+export async function fetchSeriesInfo(category, seriesSlug) {
+  const encCat = encodeURIComponent(category);
+  const encSlug = encodeURIComponent(seriesSlug);
+
+  const { data: folderFiles } = await githubApi.get(
+    `/repos/${OWNER}/${REPO}/contents/${DEV_PATH}/${encCat}/${encSlug}`,
+  );
+
+  const { data: infoData } = await githubApi.get(
+    `/repos/${OWNER}/${REPO}/contents/${DEV_PATH}/${encCat}/${encSlug}/info.json`,
+  );
+  const info = JSON.parse(decodeBase64(infoData.content));
+  const cover = findCover(folderFiles) || '';
+
+  const episodeDirs = folderFiles.filter((f) => f.type === 'dir');
+  const episodes = await Promise.all(
+    episodeDirs.map(async (epDir) => {
+      const epName = decodeGitQuotedName(epDir.name);
+      try {
+        const { data: epFiles } = await githubApi.get(
+          `/repos/${OWNER}/${REPO}/contents/${DEV_PATH}/${encCat}/${encSlug}/${encodeURIComponent(epName)}`,
+        );
+        const decodedEpFiles = epFiles.map((f) => ({ ...f, name: decodeGitQuotedName(f.name) }));
+        const mdFile = findMarkdown(decodedEpFiles);
+        if (!mdFile) return null;
+        const { data: mdData } = await githubApi.get(
+          `/repos/${OWNER}/${REPO}/contents/${DEV_PATH}/${encCat}/${encSlug}/${encodeURIComponent(epName)}/${encodeURIComponent(mdFile.name)}`,
+        );
+        const { meta } = parseFrontmatter(decodeBase64(mdData.content));
+        return {
+          slug: epName,
+          title: meta.title || epName,
+          date: meta.date || '',
+          episode: meta.episode ? Number(meta.episode) : null,
+          description: meta.description || '',
+        };
+      } catch {
+        return null;
+      }
+    }),
+  );
+
+  const validEpisodes = episodes
+    .filter(Boolean)
+    .sort((a, b) => (a.episode ?? 999) - (b.episode ?? 999));
+
+  return { ...info, cover, slug: seriesSlug, category, episodes: validEpisodes };
+}
+
+export async function fetchSeriesEpisode(category, seriesSlug, episodeSlug) {
+  const encCat = encodeURIComponent(category);
+  const encSeries = encodeURIComponent(seriesSlug);
+  const encEp = encodeURIComponent(episodeSlug);
+
+  const { data: epFiles } = await githubApi.get(
+    `/repos/${OWNER}/${REPO}/contents/${DEV_PATH}/${encCat}/${encSeries}/${encEp}`,
+  );
+  const decodedFiles = epFiles.map((f) => ({ ...f, name: decodeGitQuotedName(f.name) }));
+  const mdFile = findMarkdown(decodedFiles);
+  if (!mdFile) throw new Error('No .md file found in episode folder');
+
+  const { data: fileData } = await githubApi.get(
+    `/repos/${OWNER}/${REPO}/contents/${DEV_PATH}/${encCat}/${encSeries}/${encEp}/${encodeURIComponent(mdFile.name)}`,
+  );
+  const rawContent = decodeBase64(fileData.content);
+  const mdFilePath = `${DEV_PATH}/${category}/${seriesSlug}/${episodeSlug}/${mdFile.name}`;
+  const dates = await fetchCommitDates(mdFilePath);
+  const { meta, body } = parseFrontmatter(rawContent);
+
+  return {
+    slug: episodeSlug,
+    seriesSlug,
+    category,
+    title: meta.title || episodeSlug,
+    date: meta.date || '',
+    episode: meta.episode ? Number(meta.episode) : null,
+    tags: Array.isArray(meta.tags) ? meta.tags : [],
+    description: meta.description || '',
+    cover: findCover(decodedFiles),
+    isFolder: true,
+    content: body,
+    createdAt: formatDate(dates.createdAt),
+    updatedAt: formatDate(dates.updatedAt),
+  };
+}
+
+export async function saveSeriesInfo({ category, seriesSlug, title, description, status, tags, updatedAt, coverFile }) {
+  const encCat = encodeURIComponent(category);
+  const encSlug = encodeURIComponent(seriesSlug);
+  const infoPath = `${DEV_PATH}/${category}/${seriesSlug}/info.json`;
+  const encodedInfoPath = `${DEV_PATH}/${encCat}/${encSlug}/info.json`;
+
+  // Get existing sha if any
+  let sha;
+  try {
+    const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${encodedInfoPath}`);
+    sha = data.sha;
+  } catch { sha = undefined; }
+
+  const info = { title, description, status, tags, updatedAt: updatedAt || new Date().toISOString().slice(0, 10) };
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(info, null, 2))));
+
+  await githubApi.put(`/repos/${OWNER}/${REPO}/contents/${encodedInfoPath}`, {
+    message: `docs: ${sha ? 'update' : 'create'} series info ${category}/${seriesSlug}`,
+    content,
+    branch: 'master',
+    ...(sha ? { sha } : {}),
+  });
+
+  if (coverFile) {
+    const coverBase64 = await fileToBase64(coverFile);
+    const ext = coverFile.name.split('.').pop();
+    const coverPath = `${DEV_PATH}/${encCat}/${encSlug}/cover.${ext}`;
+    let coverSha;
+    try {
+      const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${coverPath}`);
+      coverSha = data.sha;
+    } catch { coverSha = undefined; }
+    await githubApi.put(`/repos/${OWNER}/${REPO}/contents/${coverPath}`, {
+      message: `docs: add cover for series ${category}/${seriesSlug}`,
+      content: coverBase64,
+      branch: 'master',
+      ...(coverSha ? { sha: coverSha } : {}),
+    });
+  }
+}
+
+export async function saveSeriesEpisode({ category, seriesSlug, episodeSlug, title, date, episode, tags, description, content: mdContent }) {
+  const encCat = encodeURIComponent(category);
+  const encSeries = encodeURIComponent(seriesSlug);
+  const encEp = encodeURIComponent(episodeSlug);
+  const mdPath = `${DEV_PATH}/${encCat}/${encSeries}/${encEp}/${encEp}.md`;
+
+  const frontmatter = [
+    '---',
+    `title: "${title}"`,
+    `date: "${date}"`,
+    episode != null ? `episode: ${episode}` : null,
+    `tags: [${tags.map((t) => `"${t}"`).join(', ')}]`,
+    description ? `description: "${description}"` : null,
+    '---',
+  ].filter(Boolean).join('\n');
+
+  const fullContent = `${frontmatter}\n\n${mdContent}`;
+  const encoded = btoa(unescape(encodeURIComponent(fullContent)));
+
+  let sha;
+  try {
+    const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${mdPath}`);
+    sha = data.sha;
+  } catch { sha = undefined; }
+
+  await githubApi.put(`/repos/${OWNER}/${REPO}/contents/${mdPath}`, {
+    message: `docs: ${sha ? 'update' : 'add'} episode ${category}/${seriesSlug}/${episodeSlug}`,
+    content: encoded,
+    branch: 'master',
+    ...(sha ? { sha } : {}),
+  });
+
+  // Also update info.json updatedAt
+  try {
+    const infoPath = `${DEV_PATH}/${encCat}/${encSeries}/info.json`;
+    const { data: infoData } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${infoPath}`);
+    const info = JSON.parse(decodeBase64(infoData.content));
+    info.updatedAt = date || new Date().toISOString().slice(0, 10);
+    const updatedContent = btoa(unescape(encodeURIComponent(JSON.stringify(info, null, 2))));
+    await githubApi.put(`/repos/${OWNER}/${REPO}/contents/${infoPath}`, {
+      message: `docs: update series updatedAt for ${seriesSlug}`,
+      content: updatedContent,
+      branch: 'master',
+      sha: infoData.sha,
+    });
+  } catch { /* best effort */ }
 }
 
 export async function fetchFolderFiles(folderPath) {
