@@ -84,7 +84,7 @@ const useDevStore = create((set, get) => ({
   },
 
   getPostNav: (category, slug) => {
-    const filteredPosts = get().getFilteredPosts();
+    const filteredPosts = get().getFilteredPosts().filter((p) => !p.isSeries);
     const currentIndex = filteredPosts.findIndex(
       (p) => p.slug === slug && p.category === category,
     );

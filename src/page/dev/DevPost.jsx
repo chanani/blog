@@ -79,8 +79,19 @@ function DevPost() {
   const navigate = useNavigate();
   const lang = useLang();
   const { t } = useTranslation();
-  const { currentPost, loading, error, loadPost, clearPost, getPostNav } = useDevStore();
-  const { prev, next } = getPostNav(category, effectiveSlug);
+  const { currentPost, loading, error, loadPost, clearPost, getPostNav, currentSeries, loadSeries, clearSeries } = useDevStore();
+  const { prev, next } = isEpisode ? { prev: null, next: null } : getPostNav(category, effectiveSlug);
+
+  const [episodePrev, episodeNext] = useMemo(() => {
+    if (!isEpisode || !currentSeries?.episodes) return [null, null];
+    const eps = currentSeries.episodes;
+    const idx = eps.findIndex((ep) => ep.slug === episodeSlug);
+    if (idx === -1) return [null, null];
+    return [idx > 0 ? eps[idx - 1] : null, idx < eps.length - 1 ? eps[idx + 1] : null];
+  }, [isEpisode, currentSeries, episodeSlug]);
+
+  const displayPrev = isEpisode ? episodePrev : prev;
+  const displayNext = isEpisode ? episodeNext : next;
   const [giscusTheme, setGiscusTheme] = useState(
     () => document.documentElement.getAttribute('data-theme') || 'light',
   );
@@ -281,10 +292,14 @@ function DevPost() {
   useEffect(() => {
     if (category && effectiveSlug) {
       loadPost(category, effectiveSlug, isEpisode ? seriesSlug : null);
+      if (isEpisode && seriesSlug) loadSeries(category, seriesSlug);
       fetchViewCount(`/post/${category}/${isEpisode ? `${seriesSlug}/${effectiveSlug}` : effectiveSlug}`).then(setViewCount);
     }
-    return () => clearPost();
-  }, [category, slug, seriesSlug, episodeSlug, loadPost, clearPost]);
+    return () => {
+      clearPost();
+      if (isEpisode) clearSeries();
+    };
+  }, [category, slug, seriesSlug, episodeSlug, loadPost, clearPost, loadSeries, clearSeries]);
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
@@ -544,28 +559,36 @@ function DevPost() {
           </div>
         </article>
 
-        {(prev || next) && (
-          <nav className={`chapter-nav${prev && next ? ' has-both' : ''}`}>
-            {prev && (
+        {(displayPrev || displayNext) && (
+          <nav className={`chapter-nav${displayPrev && displayNext ? ' has-both' : ''}`}>
+            {displayPrev && (
               <button
                 className="chapter-nav-btn prev"
-                onClick={() => navigate(`/${lang}/post/${prev.category}/${prev.slug}`)}
+                onClick={() => navigate(
+                  isEpisode
+                    ? `/${lang}/post/${category}/${seriesSlug}/${displayPrev.slug}`
+                    : `/${lang}/post/${displayPrev.category}/${displayPrev.slug}`
+                )}
               >
                 <FiChevronLeft size={18} />
                 <div className="chapter-nav-text">
                   <span className="chapter-nav-label">{t('post.prev')}</span>
-                  <span className="chapter-nav-title">{prev.title}</span>
+                  <span className="chapter-nav-title">{displayPrev.title}</span>
                 </div>
               </button>
             )}
-            {next && (
+            {displayNext && (
               <button
                 className="chapter-nav-btn next"
-                onClick={() => navigate(`/${lang}/post/${next.category}/${next.slug}`)}
+                onClick={() => navigate(
+                  isEpisode
+                    ? `/${lang}/post/${category}/${seriesSlug}/${displayNext.slug}`
+                    : `/${lang}/post/${displayNext.category}/${displayNext.slug}`
+                )}
               >
                 <div className="chapter-nav-text">
                   <span className="chapter-nav-label">{t('post.next')}</span>
-                  <span className="chapter-nav-title">{next.title}</span>
+                  <span className="chapter-nav-title">{displayNext.title}</span>
                 </div>
                 <FiChevronRight size={18} />
               </button>
