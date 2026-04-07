@@ -41,7 +41,8 @@ function findCover(files) {
   const cover = files.find(
     (f) => f.type === 'file' && /^cover\.(png|jpe?g|webp|gif|svg)$/i.test(f.name),
   );
-  return cover?.download_url || '';
+  if (!cover) return '';
+  return `${cover.download_url}?v=${cover.sha.slice(0, 8)}`;
 }
 
 function formatChapterName(filename) {

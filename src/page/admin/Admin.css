@@ -956,6 +956,123 @@ a.admin-discussion-item:hover {
   opacity: 1;
 }
 
+/* ── Series Episode List (in series form) ── */
+.series-ep-list-section {
+  margin-top: 24px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.series-ep-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.series-ep-list-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.series-ep-list-label em {
+  font-style: normal;
+  color: var(--accent-primary);
+  margin-left: 4px;
+}
+
+.series-ep-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: var(--accent-light);
+  border: 1px solid var(--accent-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.series-ep-add-btn:hover {
+  background: var(--accent-primary);
+  color: #fff;
+}
+
+.series-ep-empty {
+  padding: 16px 14px;
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.series-ep-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.series-ep-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.12s;
+}
+
+.series-ep-item:last-child {
+  border-bottom: none;
+}
+
+.series-ep-item:hover {
+  background: var(--bg-secondary);
+}
+
+.series-ep-num {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  font-family: monospace;
+  min-width: 22px;
+}
+
+.series-ep-title {
+  flex: 1;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.series-ep-edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+
+.series-ep-edit-btn:hover {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  background: var(--accent-light);
+}
+
 /* ── Right: Editor Pane ── */
 .write-editor-pane {
   flex: 1;
@@ -989,7 +1106,6 @@ a.admin-discussion-item:hover {
   flex-direction: column;
   gap: 16px;
   padding: 24px 28px 20px;
-  flex: 1;
 }
 
 .write-section-title {
@@ -1015,6 +1131,9 @@ a.admin-discussion-item:hover {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.write-meta-row .write-field {
   flex: 1;
 }
 

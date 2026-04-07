@@ -11,9 +11,12 @@ const useDevStore = create((set, get) => ({
   selectedCategory: 'all',
   searchQuery: '',
   commentCounts: {},
+  loadedAt: null,
 
   loadPosts: async () => {
-    if (get().posts.length > 0 || get().loading) return;
+    const { posts, loading, loadedAt } = get();
+    const stale = !loadedAt || Date.now() - loadedAt > 60 * 1000;
+    if ((posts.length > 0 && !stale) || loading) return;
     set({ loading: true, error: null });
     try {
       const [posts, commentCounts, visibility] = await Promise.all([
@@ -21,7 +24,7 @@ const useDevStore = create((set, get) => ({
         fetchDevDiscussionCounts(),
         fetchVisibility(),
       ]);
-      set({ posts, commentCounts, visibility, loading: false });
+      set({ posts, commentCounts, visibility, loading: false, loadedAt: Date.now() });
     } catch (error) {
       set({ error: error.message, loading: false });
     }
@@ -60,9 +63,10 @@ const useDevStore = create((set, get) => ({
   clearSeries: () => set({ currentSeries: null }),
 
   refreshPosts: () => {
-    set({ posts: [] });
+    set({ posts: [], loadedAt: null });
     get().loadPosts();
   },
+
 
   getFilteredPosts: (showAll = false) => {
     const { posts, visibility, selectedCategory, searchQuery } = get();

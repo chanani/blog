@@ -5,6 +5,7 @@ import { FiLock, FiChevronDown, FiChevronUp, FiChevronRight, FiChevronLeft, FiMe
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { saveDevPost, saveBookChapter, saveNewBook, deleteGithubFile, copyGithubFile, fetchFolderFiles, fetchDevTree, fetchBookTree, fetchDevPost, fetchChapter, fetchBookInfo, uploadImage, saveSeriesInfo, saveSeriesEpisode, fetchSeriesInfo, fetchSeriesEpisode, fetchVisibility, saveVisibility } from '../../api/github';
+import useDevStore from '../../store/useDevStore';
 import './Admin.css';
 
 function VisitorCard({ visitors }) {
@@ -668,6 +669,8 @@ function WritePost() {
   const [seriesCoverPreview, setSeriesCoverPreview] = useState(null);
   const [seriesCoverUrl, setSeriesCoverUrl] = useState('');
   const [seriesIsNew, setSeriesIsNew] = useState(false);
+  const [seriesCategoryNew, setSeriesCategoryNew] = useState(false);
+  const [seriesEpisodes, setSeriesEpisodes] = useState([]);
   const [episodeNum, setEpisodeNum] = useState('');
   const [expandedSeries, setExpandedSeries] = useState({});
 
@@ -717,6 +720,7 @@ function WritePost() {
     setDevCategory(''); setDevCategoryNew(false); setDevSlug(''); setDevTitle('');
     setDevDate(today); setDevTags(''); setDevDesc(''); setDevContent('');
     setDevCoverFile(null); setDevCoverPreview(null); setDevCoverUrl('');
+    setDevPublished(true);
     setDraftKey(key);
     setDraftSavedAt(null);
     const draft = checkForDraft(key);
@@ -836,6 +840,7 @@ function WritePost() {
     setSeriesCategory(''); setSeriesSlugField(''); setSeriesTitle('');
     setSeriesDesc(''); setSeriesStatus('연재중'); setSeriesTags('');
     setSeriesCoverFile(null); setSeriesCoverPreview(null); setSeriesCoverUrl('');
+    setSeriesEpisodes([]); setSeriesCategoryNew(false);
     setDraftKey(key); setDraftSavedAt(null); setPendingDraft(checkForDraft(key));
   };
 
@@ -852,6 +857,7 @@ function WritePost() {
       setSeriesStatus(info.status || '연재중');
       setSeriesTags(Array.isArray(info.tags) ? info.tags.join(', ') : '');
       setSeriesCoverFile(null); setSeriesCoverPreview(null); setSeriesCoverUrl(info.cover || '');
+      setSeriesEpisodes(info.episodes || []);
       setSeriesIsNew(false);
       setEditorType('series');
       setDraftKey(dKey); setDraftSavedAt(null); setPendingDraft(checkForDraft(dKey));
@@ -899,12 +905,17 @@ function WritePost() {
 
   const toggleSeriesExpand = (key) => setExpandedSeries((p) => ({ ...p, [key]: !p[key] }));
 
+  const invalidateDevStoreCache = () => {
+    useDevStore.setState({ posts: [], visibility: {}, loadedAt: null });
+  };
+
   const handleToggleVisibility = async (key) => {
     const current = visibility[key] !== false;
     const updated = { ...visibility, [key]: !current };
     setVisibility(updated);
     try {
       await saveVisibility(updated);
+      invalidateDevStoreCache();
     } catch {
       setVisibility(visibility); // rollback
     }
@@ -922,6 +933,7 @@ function WritePost() {
         const updatedVis = { ...visibility, [visKey]: devPublished };
         setVisibility(updatedVis);
         await saveVisibility(updatedVis);
+        invalidateDevStoreCache();
         if (devCoverFile) { setDevCoverUrl(devCoverPreview || ''); setDevCoverFile(null); }
         // 기존 파일 경로 계산 (flat or folder)
         if (!devIsNew) {
@@ -1570,7 +1582,27 @@ function WritePost() {
                 <div className="write-meta-row">
                   <div className="write-field">
                     <label className="write-label">카테고리 *</label>
-                    <input className="write-input" placeholder="예: spring" value={seriesCategory} onChange={(e) => setSeriesCategory(e.target.value)} readOnly={!seriesIsNew} required />
+                    {seriesIsNew ? (
+                      seriesCategoryNew ? (
+                        <div className="write-cat-new-row">
+                          <input className="write-input" placeholder="새 카테고리명" value={seriesCategory} onChange={(e) => setSeriesCategory(e.target.value)} autoFocus required />
+                          <button type="button" className="write-cat-cancel" onClick={() => { setSeriesCategoryNew(false); setSeriesCategory(''); }}>취소</button>
+                        </div>
+                      ) : (
+                        <CustomSelect
+                          value={seriesCategory}
+                          onChange={(v) => { if (v === '__new__') { setSeriesCategoryNew(true); setSeriesCategory(''); } else setSeriesCategory(v); }}
+                          options={[
+                            ...devTree.map(({ category }) => ({ value: category, label: category })),
+                            { value: '__sep__', label: '', disabled: true },
+                            { value: '__new__', label: '+ 새 카테고리' },
+                          ]}
+                          placeholder="카테고리 선택"
+                        />
+                      )
+                    ) : (
+                      <input className="write-input" value={seriesCategory} readOnly />
+                    )}
                   </div>
                   <div className="write-field">
                     <label className="write-label">폴더명 (slug) *</label>
@@ -1587,14 +1619,6 @@ function WritePost() {
                 </div>
                 <div className="write-meta-row">
                   <div className="write-field">
-                    <label className="write-label">상태</label>
-                    <CustomSelect
-                      value={seriesStatus}
-                      onChange={setSeriesStatus}
-                      options={[{ value: '연재중', label: '연재중' }, { value: '완결', label: '완결' }]}
-                    />
-                  </div>
-                  <div className="write-field" style={{ flex: 2 }}>
                     <label className="write-label">태그 (쉼표 구분)</label>
                     <input className="write-input" placeholder="예: JVM, Java, 백엔드" value={seriesTags} onChange={(e) => setSeriesTags(e.target.value)} />
                   </div>
@@ -1612,6 +1636,39 @@ function WritePost() {
                     저장 위치: <code>dev/{seriesCategory}/{seriesSlugField}/info.json</code>
                   </div>
                 )}
+
+                {/* ── 에피소드 목록 ── */}
+                <div className="series-ep-list-section">
+                  <div className="series-ep-list-header">
+                    <span className="series-ep-list-label">에피소드 목록 <em>{seriesEpisodes.length}편</em></span>
+                    <button
+                      type="button"
+                      className="series-ep-add-btn"
+                      onClick={() => handleNewEpisode(seriesCategory, seriesSlugField)}
+                    >
+                      <FiPlus size={12} /> 새 에피소드
+                    </button>
+                  </div>
+                  {seriesEpisodes.length === 0 ? (
+                    <div className="series-ep-empty">아직 에피소드가 없습니다.</div>
+                  ) : (
+                    <ul className="series-ep-list">
+                      {seriesEpisodes.map((ep, i) => (
+                        <li key={ep.slug} className="series-ep-item">
+                          <span className="series-ep-num">{String(i + 1).padStart(2, '0')}</span>
+                          <span className="series-ep-title">{ep.title}</span>
+                          <button
+                            type="button"
+                            className="series-ep-edit-btn"
+                            onClick={() => loadEpisodeAdmin(seriesCategory, seriesSlugField, ep.slug)}
+                          >
+                            <FiEdit3 size={11} /> 편집
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </>
             )}
 
