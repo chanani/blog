@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FiLock, FiChevronDown, FiChevronUp, FiChevronRight, FiChevronLeft, FiMessageCircle, FiMessageSquare, FiEdit3, FiCheck, FiX, FiPlus, FiFile, FiImage, FiCalendar, FiTrash2 } from 'react-icons/fi';
+import { FiLock, FiChevronDown, FiChevronUp, FiChevronRight, FiChevronLeft, FiMessageCircle, FiMessageSquare, FiEdit3, FiCheck, FiX, FiPlus, FiFile, FiImage, FiCalendar, FiTrash2, FiList } from 'react-icons/fi';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { saveDevPost, saveBookChapter, saveNewBook, deleteGithubFile, copyGithubFile, fetchFolderFiles, fetchDevTree, fetchBookTree, fetchDevPost, fetchChapter, fetchBookInfo, uploadImage, saveSeriesInfo, saveSeriesEpisode, fetchSeriesInfo, fetchSeriesEpisode, fetchVisibility, saveVisibility } from '../../api/github';
