@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { FiLock, FiChevronDown, FiChevronUp, FiChevronRight, FiChevronLeft, FiMessageCircle, FiMessageSquare, FiEdit3, FiCheck, FiX, FiPlus, FiFile, FiImage, FiCalendar, FiTrash2 } from 'react-icons/fi';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { saveDevPost, saveBookChapter, saveNewBook, deleteGithubFile, copyGithubFile, fetchFolderFiles, fetchDevTree, fetchBookTree, fetchDevPost, fetchChapter, fetchBookInfo, uploadImage, saveSeriesInfo, saveSeriesEpisode, fetchSeriesInfo, fetchSeriesEpisode } from '../../api/github';
+import { saveDevPost, saveBookChapter, saveNewBook, deleteGithubFile, copyGithubFile, fetchFolderFiles, fetchDevTree, fetchBookTree, fetchDevPost, fetchChapter, fetchBookInfo, uploadImage, saveSeriesInfo, saveSeriesEpisode, fetchSeriesInfo, fetchSeriesEpisode, fetchVisibility, saveVisibility } from '../../api/github';
 import './Admin.css';
 
 function VisitorCard({ visitors }) {
@@ -635,6 +635,8 @@ function WritePost() {
   const [devCategory, setDevCategory] = useState('');
   const [devCategoryNew, setDevCategoryNew] = useState(false);
   const [devSlug, setDevSlug] = useState('');
+  const [visibility, setVisibility] = useState({});
+  const [devPublished, setDevPublished] = useState(true);
   const [devTitle, setDevTitle] = useState('');
   const [devDate, setDevDate] = useState(today);
   const [devTags, setDevTags] = useState('');
@@ -688,9 +690,10 @@ function WritePost() {
   const [newBookIsEdit, setNewBookIsEdit] = useState(false);
 
   useEffect(() => {
-    Promise.all([fetchDevTree(), fetchBookTree()]).then(([dev, books]) => {
+    Promise.all([fetchDevTree(), fetchBookTree(), fetchVisibility()]).then(([dev, books, vis]) => {
       setDevTree(dev);
       setBookTree(books);
+      setVisibility(vis);
       setTreeLoading(false);
     });
   }, []);
@@ -776,6 +779,7 @@ function WritePost() {
       setDevContent(post.content);
       setDevCoverFile(null); setDevCoverPreview(null);
       setDevCoverUrl(post.cover || '');
+      setDevPublished(visibility[`${category}/${slug}`] !== false);
       setDevIsNew(false);
       setDevOrigCategory(category); setDevOrigSlug(slug); setDevOrigIsFolder(post.isFolder || false);
       setEditorType('dev');
@@ -895,6 +899,17 @@ function WritePost() {
 
   const toggleSeriesExpand = (key) => setExpandedSeries((p) => ({ ...p, [key]: !p[key] }));
 
+  const handleToggleVisibility = async (key) => {
+    const current = visibility[key] !== false;
+    const updated = { ...visibility, [key]: !current };
+    setVisibility(updated);
+    try {
+      await saveVisibility(updated);
+    } catch {
+      setVisibility(visibility); // rollback
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -903,6 +918,10 @@ function WritePost() {
         if (!devCategory.trim() || !devSlug.trim() || !devTitle.trim() || !devContent.trim()) { setSaving(false); return; }
         const tagList = devTags.split(',').map((t) => t.trim()).filter(Boolean);
         await saveDevPost({ category: devCategory.trim(), slug: devSlug.trim(), title: devTitle.trim(), date: devDate, tags: tagList, description: devDesc.trim(), content: devContent, coverFile: devCoverFile });
+        const visKey = `${devCategory.trim()}/${devSlug.trim()}`;
+        const updatedVis = { ...visibility, [visKey]: devPublished };
+        setVisibility(updatedVis);
+        await saveVisibility(updatedVis);
         if (devCoverFile) { setDevCoverUrl(devCoverPreview || ''); setDevCoverFile(null); }
         // 기존 파일 경로 계산 (flat or folder)
         if (!devIsNew) {
@@ -1188,6 +1207,13 @@ function WritePost() {
                                 <button className="write-tree-expand-btn" title="에피소드 목록" onClick={(e) => { e.stopPropagation(); toggleSeriesExpand(seriesKey); }}>
                                   {expandedSeries[seriesKey] ? <FiChevronDown size={10} /> : <FiChevronRight size={10} />}
                                 </button>
+                                <button
+                                  className={`write-tree-vis${visibility[seriesKey] === false ? ' private' : ''}`}
+                                  title={visibility[seriesKey] === false ? '비공개' : '공개'}
+                                  onClick={(e) => { e.stopPropagation(); handleToggleVisibility(seriesKey); }}
+                                >
+                                  {visibility[seriesKey] === false ? '🔒' : '🌐'}
+                                </button>
                                 <button className="write-tree-del" title="삭제" onClick={(e) => { e.stopPropagation(); setConfirmDelete({ type: 'dev', category, slug: slugName, label: `${category}/${slugName}` }); }}>
                                   <FiTrash2 size={10} />
                                 </button>
@@ -1226,6 +1252,13 @@ function WritePost() {
                             >
                               <FiFile size={11} />
                               <span className="write-tree-name">{slugName}</span>
+                            </button>
+                            <button
+                              className={`write-tree-vis${visibility[`${category}/${slugName}`] === false ? ' private' : ''}`}
+                              title={visibility[`${category}/${slugName}`] === false ? '비공개' : '공개'}
+                              onClick={(e) => { e.stopPropagation(); handleToggleVisibility(`${category}/${slugName}`); }}
+                            >
+                              {visibility[`${category}/${slugName}`] === false ? '🔒' : '🌐'}
                             </button>
                             <button
                               className="write-tree-del"
@@ -1486,6 +1519,18 @@ function WritePost() {
                   <div className="write-field" style={{ flex: 2 }}>
                     <label className="write-label">설명</label>
                     <input className="write-input" placeholder="포스트 간단 설명" value={devDesc} onChange={(e) => setDevDesc(e.target.value)} />
+                  </div>
+                </div>
+                <div className="write-meta-row">
+                  <div className="write-field">
+                    <label className="write-label">공개 여부</label>
+                    <button
+                      type="button"
+                      className={`write-publish-toggle${devPublished ? ' published' : ' private'}`}
+                      onClick={() => setDevPublished((p) => !p)}
+                    >
+                      {devPublished ? '🌐 공개' : '🔒 비공개'}
+                    </button>
                   </div>
                 </div>
                 {devCategory && devSlug && (

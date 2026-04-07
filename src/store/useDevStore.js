@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { fetchDevPostList, fetchDevPost, fetchDevDiscussionCounts, fetchSeriesInfo, fetchSeriesEpisode } from '../api/github';
+import { fetchDevPostList, fetchDevPost, fetchDevDiscussionCounts, fetchSeriesInfo, fetchSeriesEpisode, fetchVisibility } from '../api/github';
 
 const useDevStore = create((set, get) => ({
   posts: [],
+  visibility: {},
   currentPost: null,
   currentSeries: null,
   loading: false,
@@ -15,11 +16,12 @@ const useDevStore = create((set, get) => ({
     if (get().posts.length > 0 || get().loading) return;
     set({ loading: true, error: null });
     try {
-      const [posts, commentCounts] = await Promise.all([
+      const [posts, commentCounts, visibility] = await Promise.all([
         fetchDevPostList(),
         fetchDevDiscussionCounts(),
+        fetchVisibility(),
       ]);
-      set({ posts, commentCounts, loading: false });
+      set({ posts, commentCounts, visibility, loading: false });
     } catch (error) {
       set({ error: error.message, loading: false });
     }
@@ -62,9 +64,11 @@ const useDevStore = create((set, get) => ({
     get().loadPosts();
   },
 
-  getFilteredPosts: () => {
-    const { posts, selectedCategory, searchQuery } = get();
+  getFilteredPosts: (showAll = false) => {
+    const { posts, visibility, selectedCategory, searchQuery } = get();
     return posts.filter((post) => {
+      const key = `${post.category}/${post.slug}`;
+      if (!showAll && visibility[key] === false) return false;
       const matchCategory =
         selectedCategory === 'all' || post.category === selectedCategory;
       const q = searchQuery.toLowerCase();

@@ -528,6 +528,33 @@ function findMarkdown(files) {
 // Supports two formats:
 //   1. dev/category/post-name.md          (flat file, no cover)
 //   2. dev/category/post-name/any.md      (folder with any .md + optional cover image)
+const VISIBILITY_PATH = `${DEV_PATH}/_visibility.json`;
+
+export async function fetchVisibility() {
+  try {
+    const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${VISIBILITY_PATH}`);
+    return JSON.parse(decodeBase64(data.content));
+  } catch {
+    return {};
+  }
+}
+
+export async function saveVisibility(visibility) {
+  let sha;
+  try {
+    const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${VISIBILITY_PATH}`);
+    sha = data.sha;
+  } catch { sha = undefined; }
+
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(visibility, null, 2))));
+  await githubApi.put(`/repos/${OWNER}/${REPO}/contents/${VISIBILITY_PATH}`, {
+    message: 'chore: update post visibility',
+    content,
+    branch: 'master',
+    ...(sha ? { sha } : {}),
+  });
+}
+
 export async function fetchDevPostList() {
   try {
     const { data: categories } = await githubApi.get(
