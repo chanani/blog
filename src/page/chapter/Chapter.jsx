@@ -956,7 +956,9 @@ function Chapter() {
               {!memoMode ? (
                 <>
                   <button className="highlight-popup-btn" onClick={handleHighlightSave}>형광펜</button>
-                  <button className="highlight-popup-btn memo-btn" onClick={() => setMemoMode(true)}>메모</button>
+                  {authenticated && (
+                    <button className="highlight-popup-btn memo-btn" onClick={() => setMemoMode(true)}>메모</button>
+                  )}
                   <button className="highlight-popup-cancel" onClick={() => { handlePopupClose(); setMemoMode(false); }}>✕</button>
                 </>
               ) : (

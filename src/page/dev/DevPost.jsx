@@ -679,7 +679,7 @@ function DevPost() {
             </ReactMarkdown>
           </div>
 
-          {popupPos && (
+          {authenticated && popupPos && (
             <div
               className="highlight-popup"
               style={{ left: popupPos.x, top: popupPos.y }}
