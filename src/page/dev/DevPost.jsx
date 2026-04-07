@@ -296,6 +296,24 @@ function DevPost() {
     setActiveId(current);
   }, [headings]);
 
+  const handleMemoIconClick = useCallback((memo, iconEl) => {
+    const rect = iconEl.getBoundingClientRect();
+    setBubblePos({ x: rect.left + rect.width / 2, y: rect.bottom + 8 });
+    setActiveMemo(memo);
+    setEditingMemo(null);
+  }, []);
+
+  const updateMemoPositions = useCallback(() => {
+    const container = postBodyRef.current;
+    if (!container) return;
+    const positions = {};
+    memos.forEach((memo) => {
+      const el = container.querySelector(`mark[data-mid="${memo.id}"]`);
+      if (el) positions[memo.id] = el.getBoundingClientRect().top;
+    });
+    setMemoAnnotationPositions(positions);
+  }, [memos]);
+
   useEffect(() => {
     const onScroll = () => { handleScroll(); updateMemoPositions(); };
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -371,24 +389,6 @@ function DevPost() {
       document.removeEventListener('mousedown', onClickOutside);
     };
   }, []);
-
-  const handleMemoIconClick = useCallback((memo, iconEl) => {
-    const rect = iconEl.getBoundingClientRect();
-    setBubblePos({ x: rect.left + rect.width / 2, y: rect.bottom + 8 });
-    setActiveMemo(memo);
-    setEditingMemo(null);
-  }, []);
-
-  const updateMemoPositions = useCallback(() => {
-    const container = postBodyRef.current;
-    if (!container) return;
-    const positions = {};
-    memos.forEach((memo) => {
-      const el = container.querySelector(`mark[data-mid="${memo.id}"]`);
-      if (el) positions[memo.id] = el.getBoundingClientRect().top;
-    });
-    setMemoAnnotationPositions(positions);
-  }, [memos]);
 
   useEffect(() => {
     const container = postBodyRef.current;
