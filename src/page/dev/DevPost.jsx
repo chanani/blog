@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
@@ -14,6 +14,9 @@ import { useLang } from '../../hooks/useLang';
 import { useTranslation } from 'react-i18next';
 import { fetchViewCount } from '../../api/goatcounter';
 import ImageModal from '../../components/ImageModal';
+import { useChapterMemo } from '../../hooks/useChapterMemo';
+import { applyMemosToDOM } from '../../utils/memoDOM';
+import { useAuth } from '../../context/AuthContext';
 import '../chapter/Chapter.css';
 import './DevPost.css';
 
@@ -115,6 +118,24 @@ function DevPost() {
   const [viewCount, setViewCount] = useState(null);
   const [zoomImages, setZoomImages] = useState([]);
   const [zoomIndex, setZoomIndex] = useState(-1);
+  const [popupPos, setPopupPos] = useState(null);
+  const [pendingText, setPendingText] = useState('');
+  const postBodyRef = useRef(null);
+  const { authenticated, getToken } = useAuth();
+  const { memos, fetchMemos, addMemo, editMemo, deleteMemo } = useChapterMemo('_dev', `${category}/${effectiveSlug}`);
+  const [memoMode, setMemoMode] = useState(false);
+  const [memoNote, setMemoNote] = useState('');
+  const [activeMemo, setActiveMemo] = useState(null);
+  const [bubblePos, setBubblePos] = useState(null);
+  const [editingMemo, setEditingMemo] = useState(null);
+  const [memoAnnotationPositions, setMemoAnnotationPositions] = useState({});
+  const [memoToast, setMemoToast] = useState(null);
+  const memoModeRef = useRef(false);
+
+  const showMemoToast = useCallback((message, type = 'success') => {
+    setMemoToast({ message, type });
+    setTimeout(() => setMemoToast(null), 2500);
+  }, []);
 
   const SITE_URL = 'https://chanhan.blog';
 
@@ -276,10 +297,11 @@ function DevPost() {
   }, [headings]);
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    const onScroll = () => { handleScroll(); updateMemoPositions(); };
+    window.addEventListener('scroll', onScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [handleScroll, updateMemoPositions]);
 
   const scrollToHeading = (id) => {
     const el = document.getElementById(id);
@@ -294,12 +316,86 @@ function DevPost() {
       loadPost(category, effectiveSlug, isEpisode ? seriesSlug : null);
       if (isEpisode && seriesSlug) loadSeries(category, seriesSlug);
       fetchViewCount(`/post/${category}/${isEpisode ? `${seriesSlug}/${effectiveSlug}` : effectiveSlug}`).then(setViewCount);
+      fetchMemos();
     }
     return () => {
       clearPost();
       if (isEpisode) clearSeries();
     };
-  }, [category, slug, seriesSlug, episodeSlug, loadPost, clearPost, loadSeries, clearSeries]);
+  }, [category, slug, seriesSlug, episodeSlug, loadPost, clearPost, loadSeries, clearSeries, fetchMemos]);
+
+  useEffect(() => {
+    memoModeRef.current = memoMode;
+  }, [memoMode]);
+
+  useEffect(() => {
+    const lastTouchTime = { current: 0 };
+    const onMouseUp = () => {
+      if (Date.now() - lastTouchTime.current < 600) return;
+      if (memoModeRef.current) return;
+      const selection = window.getSelection();
+      const text = selection?.toString().trim();
+      if (!text || text.length < 2) { setPopupPos(null); return; }
+      const range = selection.getRangeAt(0);
+      if (!postBodyRef.current?.contains(range.commonAncestorContainer)) return;
+      const rect = range.getBoundingClientRect();
+      setPopupPos({ x: rect.left + rect.width / 2, y: rect.top - 44 });
+      setPendingText(text);
+    };
+    const onTouchEnd = () => {
+      lastTouchTime.current = Date.now();
+      setTimeout(() => {
+        if (memoModeRef.current) return;
+        const selection = window.getSelection();
+        const text = selection?.toString().trim();
+        if (!text || text.length < 2) { setPopupPos(null); return; }
+        const range = selection.getRangeAt(0);
+        if (!postBodyRef.current?.contains(range.commonAncestorContainer)) return;
+        const rect = range.getBoundingClientRect();
+        setPopupPos({ x: rect.left + rect.width / 2, y: rect.bottom + 12 });
+        setPendingText(text);
+      }, 100);
+    };
+    const onClickOutside = (e) => {
+      if (!e.target.closest('.memo-bubble') && !e.target.closest('.memo-highlight') && !e.target.closest('.memo-annotation')) {
+        setActiveMemo(null);
+        setBubblePos(null);
+      }
+    };
+    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('touchend', onTouchEnd);
+    document.addEventListener('mousedown', onClickOutside);
+    return () => {
+      document.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener('touchend', onTouchEnd);
+      document.removeEventListener('mousedown', onClickOutside);
+    };
+  }, []);
+
+  const handleMemoIconClick = useCallback((memo, iconEl) => {
+    const rect = iconEl.getBoundingClientRect();
+    setBubblePos({ x: rect.left + rect.width / 2, y: rect.bottom + 8 });
+    setActiveMemo(memo);
+    setEditingMemo(null);
+  }, []);
+
+  const updateMemoPositions = useCallback(() => {
+    const container = postBodyRef.current;
+    if (!container) return;
+    const positions = {};
+    memos.forEach((memo) => {
+      const el = container.querySelector(`mark[data-mid="${memo.id}"]`);
+      if (el) positions[memo.id] = el.getBoundingClientRect().top;
+    });
+    setMemoAnnotationPositions(positions);
+  }, [memos]);
+
+  useEffect(() => {
+    const container = postBodyRef.current;
+    if (!container || !currentPost?.content) return;
+    applyMemosToDOM(container, memos, handleMemoIconClick);
+    requestAnimationFrame(updateMemoPositions);
+  }, [memos, currentPost?.content, handleMemoIconClick, updateMemoPositions]);
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
@@ -376,6 +472,31 @@ function DevPost() {
         })}</script>
       </Helmet>
       <div className="read-progress-bar" style={{ width: `${readProgress}%` }} />
+
+      {memos.map((memo) => {
+        const top = memoAnnotationPositions[memo.id];
+        if (top === undefined || top < 56 || top > (window.innerHeight ?? 800) - 40) return null;
+        return (
+          <div
+            key={memo.id}
+            className={`memo-annotation${activeMemo?.id === memo.id ? ' active' : ''}`}
+            style={{ top }}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              const el = postBodyRef.current?.querySelector(`mark[data-mid="${memo.id}"]`);
+              if (el) {
+                const rect = el.getBoundingClientRect();
+                setBubblePos({ x: rect.left + rect.width / 2, y: rect.bottom + 8 });
+                setActiveMemo(memo);
+                setEditingMemo(null);
+              }
+            }}
+          >
+            <span className="memo-annotation-label">✏ 메모</span>
+            <span className="memo-annotation-note">{memo.note}</span>
+          </div>
+        );
+      })}
 
       {headings.length > 0 && (
         <>
@@ -548,7 +669,7 @@ function DevPost() {
             </div>
           </header>
 
-          <div className={`chapter-body font-${fontFamily}${sepiaMode ? ' sepia' : ''}`} style={{ fontSize: `${fontSize}px` }}>
+          <div ref={postBodyRef} className={`chapter-body font-${fontFamily}${sepiaMode ? ' sepia' : ''}`} style={{ fontSize: `${fontSize}px` }}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeRaw]}
@@ -557,6 +678,107 @@ function DevPost() {
               {currentPost.content}
             </ReactMarkdown>
           </div>
+
+          {popupPos && (
+            <div
+              className="highlight-popup"
+              style={{ left: popupPos.x, top: popupPos.y }}
+              onMouseDown={(e) => e.preventDefault()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
+              {!memoMode ? (
+                <>
+                  <button className="highlight-popup-btn memo-btn" onClick={() => setMemoMode(true)}>메모</button>
+                  <button className="highlight-popup-cancel" onClick={() => { setPopupPos(null); setPendingText(''); setMemoMode(false); }}>✕</button>
+                </>
+              ) : (
+                <>
+                  <textarea
+                    className="memo-textarea"
+                    placeholder="메모를 입력하세요..."
+                    value={memoNote}
+                    onChange={(e) => setMemoNote(e.target.value)}
+                    autoFocus
+                    rows={3}
+                  />
+                  <div className="memo-popup-actions">
+                    <button
+                      className="highlight-popup-btn"
+                      onClick={async () => {
+                        if (!memoNote.trim()) return;
+                        try {
+                          const normalizedText = pendingText.replace(/\s+/g, ' ').trim();
+                          const occurrence = memos.filter((m) => m.selectedText === normalizedText).length;
+                          await addMemo(normalizedText, memoNote.trim(), occurrence, getToken());
+                          setMemoNote('');
+                          setMemoMode(false);
+                          setPopupPos(null);
+                          setPendingText('');
+                          setTimeout(() => showMemoToast('메모가 저장되었습니다'), 0);
+                        } catch {
+                          setTimeout(() => showMemoToast('메모 저장 실패', 'error'), 0);
+                        }
+                      }}
+                    >저장</button>
+                    <button className="highlight-popup-cancel" onClick={() => { setMemoMode(false); setMemoNote(''); }}>취소</button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {activeMemo && bubblePos && (
+            <>
+              <div className="memo-modal-backdrop" onClick={() => { setActiveMemo(null); setBubblePos(null); setEditingMemo(null); setMemoNote(''); }} />
+              <div
+                className="memo-bubble"
+                style={{
+                  left: Math.max(10, Math.min(bubblePos.x - 160, window.innerWidth - 330)),
+                  top: Math.min(bubblePos.y, window.innerHeight - 240),
+                }}
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                <div className="memo-bubble-header">
+                  <span className="memo-bubble-header-label">✏ 메모</span>
+                  <button className="memo-bubble-close" onClick={() => { setActiveMemo(null); setBubblePos(null); setEditingMemo(null); setMemoNote(''); }}>✕</button>
+                </div>
+                {activeMemo.selectedText && <p className="memo-bubble-quote">"{activeMemo.selectedText}"</p>}
+                <div className="memo-bubble-body">
+                  {editingMemo === activeMemo.id ? (
+                    <>
+                      <textarea className="memo-textarea" value={memoNote} onChange={(e) => setMemoNote(e.target.value)} rows={4} autoFocus />
+                      <div className="memo-popup-actions">
+                        <button className="highlight-popup-btn" onClick={async () => {
+                          try {
+                            await editMemo(activeMemo.id, memoNote.trim(), getToken());
+                            setActiveMemo(null); setBubblePos(null); setEditingMemo(null); setMemoNote('');
+                            setTimeout(() => showMemoToast('메모가 수정되었습니다'), 0);
+                          } catch { setTimeout(() => showMemoToast('메모 수정 실패', 'error'), 0); }
+                        }}>저장</button>
+                        <button className="highlight-popup-cancel" onClick={() => { setEditingMemo(null); setMemoNote(''); }}>취소</button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="memo-bubble-text">{activeMemo.note}</p>
+                      {authenticated && (
+                        <div className="memo-bubble-actions">
+                          <button className="memo-bubble-edit" onClick={() => { setEditingMemo(activeMemo.id); setMemoNote(activeMemo.note); }}>수정</button>
+                          <button className="memo-bubble-delete" onClick={async () => {
+                            try {
+                              await deleteMemo(activeMemo.id, getToken());
+                              setActiveMemo(null); setBubblePos(null);
+                              setTimeout(() => showMemoToast('메모가 삭제되었습니다'), 0);
+                            } catch { setTimeout(() => showMemoToast('메모 삭제 실패', 'error'), 0); }
+                          }}>삭제</button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </article>
 
         {(displayPrev || displayNext) && (
@@ -617,6 +839,13 @@ function DevPost() {
         <div className="chapter-share-toast">
           <FiCheck size={14} />
           <span>{shareToast}</span>
+        </div>
+      )}
+
+      {memoToast && (
+        <div className={`memo-toast memo-toast--${memoToast.type}`}>
+          {memoToast.type === 'success' ? <FiCheck size={14} /> : '✕'}
+          <span>{memoToast.message}</span>
         </div>
       )}
 
