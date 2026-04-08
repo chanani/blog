@@ -209,6 +209,17 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  gap: 6px;
+}
+
+.series-ep-new {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #fff;
+  background: #ef4444;
+  padding: 2px 6px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
 }
 
 .series-ep-arrow {

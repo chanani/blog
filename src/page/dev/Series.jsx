@@ -115,6 +115,9 @@ function Series() {
                   <span className="series-ep-num">{String(i + 1).padStart(2, '0')}</span>
                   <span className="series-ep-name">{ep.title}</span>
                   <div className="series-ep-right">
+                    {ep.date && Date.now() - new Date(ep.date).getTime() < 3 * 24 * 60 * 60 * 1000 && (
+                      <span className="series-ep-new">NEW</span>
+                    )}
                     <FiChevronRight size={16} className="series-ep-arrow" />
                   </div>
                 </Link>

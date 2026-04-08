@@ -52,6 +52,12 @@ function SortDropdown({ value, onChange }) {
   );
 }
 
+function isNew(dateStr) {
+  if (!dateStr) return false;
+  const diff = Date.now() - new Date(dateStr).getTime();
+  return diff >= 0 && diff < 3 * 24 * 60 * 60 * 1000;
+}
+
 function PostItem({ post, index, commentCount, viewCount }) {
   const [imgError, setImgError] = useState(false);
   const lang = useLang();
@@ -73,6 +79,7 @@ function PostItem({ post, index, commentCount, viewCount }) {
         <div className="post-item-body">
           <div className="post-item-meta">
             <span className="post-cat-badge">{post.category}</span>
+            {isNew(post.date) && <span className="post-new-badge">NEW</span>}
             {post.date && (
               <span className="post-meta-item">
                 <FiCalendar size={11} />
@@ -127,6 +134,7 @@ function SeriesItem({ post, index }) {
           <div className="post-item-meta">
             <span className="post-cat-badge">{post.category}</span>
             <span className="series-meta-badge">SERIES · {post.episodeCount || 0}편</span>
+            {isNew(post.date) && <span className="post-new-badge">NEW</span>}
             {post.date && (
               <span className="post-meta-item">
                 <FiCalendar size={11} />
