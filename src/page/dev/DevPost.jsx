@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight, oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { FiArrowLeft, FiCalendar, FiEdit3, FiChevronLeft, FiChevronRight, FiList, FiMinus, FiPlus, FiSettings, FiLink, FiCheck, FiCopy, FiShare2, FiEye } from 'react-icons/fi';
+import { FiArrowLeft, FiCalendar, FiEdit3, FiChevronLeft, FiChevronRight, FiList, FiMinus, FiPlus, FiSettings, FiLink, FiCheck, FiCopy, FiShare2, FiEye, FiDownload } from 'react-icons/fi';
 import Giscus from '@giscus/react';
 import useDevStore from '../../store/useDevStore';
 import { useLang } from '../../hooks/useLang';
@@ -111,6 +111,7 @@ function DevPost() {
   const [sepiaMode, setSepiaMode] = useState(() => {
     return localStorage.getItem('chapter-sepia-mode') === 'true';
   });
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [fontSelectOpen, setFontSelectOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -151,6 +152,152 @@ function DevPost() {
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy URL:', err);
+    }
+  };
+
+  const downloadPdf = async () => {
+    setSettingsOpen(false);
+    setPdfLoading(true);
+
+    const element = document.querySelector('.chapter-body');
+    if (!element) { setPdfLoading(false); return; }
+
+    const [domtoimage, { jsPDF }] = await Promise.all([
+      import('dom-to-image-more'),
+      import('jspdf'),
+    ]);
+
+    const clone = document.createElement('div');
+    clone.style.cssText = `
+      position: absolute; left: -9999px; top: 0;
+      width: 900px; background: #ffffff; color: #1a1a1a;
+      padding: 48px; font-size: 16px; line-height: 1.8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    `;
+
+    const title = document.createElement('h1');
+    title.textContent = currentPost?.title || '';
+    title.style.cssText = `
+      font-size: 32px; font-weight: 700; color: #1a1a1a;
+      margin: 0 0 12px 0; padding-bottom: 20px;
+      border-bottom: 3px solid #e8735a;
+    `;
+    clone.appendChild(title);
+
+    const body = element.cloneNode(true);
+    body.style.cssText = 'background: transparent; color: #1a1a1a;';
+    clone.appendChild(body);
+
+    // 코드 블록: Canvas API로 직접 렌더링 후 <img>로 교체
+    // SyntaxHighlighter가 PreTag="div"이므로 .code-block-wrapper를 타겟으로 함
+    body.querySelectorAll('.code-block-wrapper').forEach((wrapper) => {
+      const codeEl = wrapper.querySelector('code');
+      const text = (codeEl?.textContent || '').replace(/\n$/, '');
+      const lines = text.split('\n');
+      const fontSize = 12;
+      const lineH = Math.ceil(fontSize * 1.7);
+      const padX = 16;
+      const padY = 14;
+      const cvWidth = 804;
+      const cvHeight = lines.length * lineH + padY * 2;
+      const cvs = document.createElement('canvas');
+      cvs.width = cvWidth * 2;
+      cvs.height = Math.max(cvHeight, lineH + padY * 2) * 2;
+      const ctx = cvs.getContext('2d');
+      ctx.scale(2, 2);
+      ctx.fillStyle = '#f5f5f5';
+      ctx.fillRect(0, 0, cvWidth, cvHeight);
+      ctx.strokeStyle = '#ddd';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(0.5, 0.5, cvWidth - 1, cvHeight - 1);
+      ctx.font = `${fontSize}px "Courier New", Courier, monospace`;
+      ctx.fillStyle = '#333';
+      lines.forEach((line, i) => {
+        ctx.fillText(line, padX, padY + i * lineH + fontSize);
+      });
+      const img = document.createElement('img');
+      img.src = cvs.toDataURL('image/png');
+      img.style.cssText = 'width: 100%; display: block; margin: 16px 0; border-radius: 6px;';
+      wrapper.replaceWith(img);
+    });
+
+    body.querySelectorAll('*').forEach((el) => {
+      if (el.tagName === 'IMG') { el.style.maxWidth = '100%'; return; }
+      el.style.color = '#1a1a1a';
+      el.style.backgroundColor = 'transparent';
+      if (el.tagName === 'P') { el.style.marginBottom = '16px'; el.style.lineHeight = '1.8'; }
+      if (el.tagName === 'A') el.style.color = '#2563eb';
+      if (['H1','H2','H3','H4'].includes(el.tagName)) { el.style.marginTop = '24px'; el.style.marginBottom = '12px'; }
+      if (el.tagName === 'CODE') { el.style.backgroundColor = '#f0f0f0'; el.style.color = '#d63384'; el.style.padding = '2px 6px'; el.style.borderRadius = '4px'; el.style.fontFamily = '"Courier New", monospace'; }
+      if (el.tagName === 'BLOCKQUOTE') { el.style.borderLeft = '4px solid #e8735a'; el.style.padding = '12px 16px'; el.style.margin = '16px 0'; el.style.background = '#f5f5f5'; el.style.color = '#555'; }
+      if (el.tagName === 'UL') { el.style.marginBottom = '16px'; el.style.paddingLeft = '24px'; el.style.listStyleType = 'disc'; }
+      if (el.tagName === 'OL') { el.style.marginBottom = '16px'; el.style.paddingLeft = '24px'; el.style.listStyleType = 'decimal'; }
+      if (el.tagName === 'LI') { el.style.marginBottom = '8px'; el.style.display = 'list-item'; }
+      if (el.tagName === 'STRONG' || el.tagName === 'B') { el.style.fontWeight = '700'; }
+      if (el.tagName === 'HR') { el.style.border = 'none'; el.style.borderTop = '1px solid #ddd'; el.style.margin = '24px 0'; }
+      if (el.tagName === 'TABLE') { el.style.width = '100%'; el.style.borderCollapse = 'collapse'; el.style.marginBottom = '16px'; }
+      if (el.tagName === 'TH' || el.tagName === 'TD') { el.style.border = '1px solid #ddd'; el.style.padding = '8px 12px'; }
+      if (el.tagName === 'TH') { el.style.backgroundColor = '#f5f5f5'; el.style.fontWeight = '600'; }
+    });
+
+    document.body.appendChild(clone);
+    await new Promise((r) => setTimeout(r, 200));
+
+    // 외부 CDN 스타일시트 임시 비활성화 (CORS 경고 방지)
+    const externalSheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+      .filter((l) => l.href && !l.href.startsWith(window.location.origin));
+    externalSheets.forEach((l) => { l.disabled = true; });
+
+    try {
+      const scale = 2;
+      const dataUrl = await domtoimage.toPng(clone, {
+        quality: 1, bgcolor: '#ffffff',
+        width: clone.offsetWidth * scale, height: clone.offsetHeight * scale,
+        style: { transform: `scale(${scale})`, transformOrigin: 'top left' },
+      });
+      externalSheets.forEach((l) => { l.disabled = false; });
+
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise((resolve) => { img.onload = resolve; });
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const margin = 15;
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const contentWidth = pdfWidth - margin * 2;
+      const contentHeight = pdfHeight - margin * 2;
+      const ratio = contentWidth / clone.offsetWidth;
+      const scaledHeight = clone.offsetHeight * ratio;
+      const totalPages = Math.ceil(scaledHeight / contentHeight);
+
+      const fullCanvas = document.createElement('canvas');
+      fullCanvas.width = img.width;
+      fullCanvas.height = img.height;
+      const fullCtx = fullCanvas.getContext('2d');
+      fullCtx.drawImage(img, 0, 0);
+
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) pdf.addPage();
+        const pageCanvas = document.createElement('canvas');
+        const ctx = pageCanvas.getContext('2d');
+        const sourceY = Math.round(page * (contentHeight / ratio) * scale);
+        const sourceH = Math.round(Math.min((contentHeight / ratio) * scale, img.height - sourceY));
+        pageCanvas.width = img.width;
+        pageCanvas.height = Math.round((contentHeight / ratio) * scale);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        if (sourceH > 0) {
+          ctx.drawImage(fullCanvas, 0, sourceY, img.width, sourceH, 0, 0, img.width, sourceH);
+        }
+        pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.85), 'JPEG', margin, margin, contentWidth, contentHeight);
+      }
+
+      pdf.save(`${currentPost?.title || 'post'}.pdf`);
+    } finally {
+      externalSheets.forEach((l) => { l.disabled = false; });
+      document.body.removeChild(clone);
+      setPdfLoading(false);
     }
   };
 
@@ -472,6 +619,12 @@ function DevPost() {
         })}</script>
       </Helmet>
       <div className="read-progress-bar" style={{ width: `${readProgress}%` }} />
+      {pdfLoading && (
+        <div className="pdf-loading-toast">
+          <span className="loading-dots"><span className="dot" /><span className="dot" /><span className="dot" /></span>
+          <span>PDF 생성 중...</span>
+        </div>
+      )}
 
       {memos.map((memo) => {
         const top = memoAnnotationPositions[memo.id];
@@ -651,6 +804,10 @@ function DevPost() {
                       <button className="settings-copy-btn" onClick={copyUrl}>
                         {copied ? <FiCheck size={14} /> : <FiLink size={14} />}
                         <span>{copied ? t('post.settings.copied') : t('post.settings.copyUrl')}</span>
+                      </button>
+                      <button className="settings-copy-btn" onClick={downloadPdf}>
+                        <FiDownload size={14} />
+                        <span>PDF 저장</span>
                       </button>
                       <div className="settings-share-divider" />
                       <p className="settings-share-label">{t('post.settings.share')}</p>

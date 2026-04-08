@@ -314,6 +314,7 @@ function Chapter() {
       padding: 60px;
       font-size: 18px;
       line-height: 1.8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
     `;
 
     // 제목 추가
