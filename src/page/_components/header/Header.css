@@ -358,6 +358,13 @@ body.hero-page .lang-chevron {
   border-color: rgba(255, 255, 255, 0.8);
 }
 
+.mobile-theme-btn {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media (max-width: 768px) {
   .header-inner {
     padding: 0 20px;

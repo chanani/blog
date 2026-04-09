@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { FiMoon, FiSun } from 'react-icons/fi';
 import Router from './routes/Router';
 import Header from './page/_components/header/Header';
 import Footer from './page/_components/footer/Footer';
@@ -29,6 +30,9 @@ function AppInner({ theme, toggleTheme }) {
         <Router />
         <Footer />
       </div>
+      <button className="theme-toggle-float" onClick={toggleTheme} aria-label="테마 전환">
+        {theme === 'light' ? <FiMoon size={16} /> : <FiSun size={16} />}
+      </button>
     </div>
   );
 }

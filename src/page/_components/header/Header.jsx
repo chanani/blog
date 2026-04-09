@@ -106,9 +106,6 @@ function Header({ theme, toggleTheme }) {
           </nav>
           <div className="header-actions">
             <LangDropdown lang={lang} onChange={handleLangChange} />
-            <button className="header-icon-btn" onClick={toggleTheme} aria-label="테마 전환">
-              {theme === 'light' ? <FiMoon size={15} /> : <FiSun size={15} />}
-            </button>
             <button
               className="header-icon-btn mobile-only"
               onClick={() => setMenuOpen((v) => !v)}
@@ -148,7 +145,7 @@ function Header({ theme, toggleTheme }) {
             ))}
             <button
               className="mobile-lang-btn mobile-theme-btn"
-              onClick={() => { toggleTheme(); setMenuOpen(false); }}
+              onClick={() => { toggleTheme(); }}
               aria-label="테마 전환"
             >
               {theme === 'light' ? <FiMoon size={14} /> : <FiSun size={14} />}
