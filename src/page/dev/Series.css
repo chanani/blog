@@ -28,14 +28,10 @@
   display: flex;
   gap: 24px;
   padding: 24px;
-  background: #ffffff;
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   margin-bottom: 16px;
-}
-
-[data-theme='dark'] .series-info-section {
-  background: var(--bg-secondary);
 }
 
 .series-cover {
@@ -120,14 +116,10 @@
 
 /* ── Episode Section ── (Book.css의 chapter-section과 동일) */
 .series-ep-section {
-  background: #ffffff;
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 20px;
-}
-
-[data-theme='dark'] .series-ep-section {
-  background: var(--bg-secondary);
 }
 
 .series-ep-header {

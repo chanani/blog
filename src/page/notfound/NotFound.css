@@ -53,7 +53,7 @@
 
 .notfound-btn.primary {
   background: var(--accent-primary);
-  color: white;
+  color: #fff;
 }
 
 .notfound-btn.primary:hover {

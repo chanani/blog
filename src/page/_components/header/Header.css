@@ -270,7 +270,7 @@ body.hero-page .footer {
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px var(--shadow-md);
   overflow: hidden;
   z-index: 200;
   min-width: 58px;

@@ -30,7 +30,7 @@
   width: 100%;
   padding: 8px 12px 8px 36px;
   border-radius: var(--radius-sm);
-  background: #fafafa;
+  background: var(--bg-secondary);
   color: var(--text-primary);
   font-size: 0.875rem;
   border: 1px solid var(--border-color);
@@ -69,7 +69,7 @@
 
 .search-clear:hover {
   color: var(--text-primary);
-  background: #fafafa;
+  background: var(--bg-secondary);
 }
 
 /* Search spinner (bouncing dots) */
@@ -100,7 +100,7 @@
 
 /* Reading History */
 .reading-history {
-  background: #fafafa;
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 16px;
@@ -163,7 +163,7 @@
 
 .history-remove:hover {
   color: var(--text-primary);
-  background: #fafafa;
+  background: var(--bg-secondary);
 }
 
 .history-info {

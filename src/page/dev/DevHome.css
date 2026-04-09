@@ -113,15 +113,11 @@
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px var(--shadow-sm);
   z-index: 50;
   overflow: hidden;
   list-style: none;
   padding: 4px;
-}
-
-[data-theme='dark'] .sort-dropdown-menu {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
 .sort-dropdown-item {

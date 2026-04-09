@@ -46,7 +46,7 @@
   background: var(--bg-primary);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 4px 24px var(--shadow-sm);
 }
 
 /* ── Emoji picker ── */
@@ -150,6 +150,7 @@
   font-size: 0.88rem;
   font-family: inherit;
   color: var(--text-primary);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   resize: vertical;
@@ -209,7 +210,7 @@
   background: var(--bg-primary);
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 4px 24px var(--shadow-sm);
 }
 
 .gb-login-desc {
@@ -320,7 +321,7 @@
   padding: 18px;
   border-radius: 12px;
   min-height: 130px;
-  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.07);
+  box-shadow: 0 2px 14px var(--shadow-sm);
   cursor: pointer;
 }
 
@@ -356,13 +357,13 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: rgba(26, 26, 46, 0.12);
+  background: var(--bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--text-secondary);
 }
 
 .gb-card-emoji {
@@ -387,7 +388,7 @@
 .gb-card-nickname {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -396,7 +397,7 @@
 
 .gb-card-date {
   font-size: 0.67rem;
-  color: rgba(26, 26, 46, 0.5);
+  color: var(--text-tertiary);
   white-space: nowrap;
   line-height: 1.3;
 }
@@ -404,7 +405,7 @@
 .gb-card-message {
   font-size: 0.87rem;
   line-height: 1.65;
-  color: #1a1a2e;
+  color: var(--text-primary);
   word-break: break-word;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -417,7 +418,7 @@
   top: 12px;
   right: 12px;
   font-size: 0.65rem;
-  color: rgba(26, 26, 46, 0.3);
+  color: var(--text-tertiary);
   background: none;
   cursor: pointer;
   padding: 3px 5px;
@@ -449,7 +450,7 @@
   max-width: 400px;
   border-radius: 16px;
   padding: 28px;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 12px 48px var(--shadow-lg);
 }
 
 .gb-modal-close {
@@ -461,7 +462,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(26, 26, 46, 0.45);
+  color: var(--text-tertiary);
   background: none;
   cursor: pointer;
   border-radius: 6px;
@@ -469,8 +470,8 @@
 }
 
 .gb-modal-close:hover {
-  color: #1a1a2e;
-  background: rgba(26, 26, 46, 0.08);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
 }
 
 .gb-modal .gb-card-header {
@@ -480,7 +481,7 @@
 .gb-modal-message {
   font-size: 0.92rem;
   line-height: 1.75;
-  color: #1a1a2e;
+  color: var(--text-primary);
   word-break: break-word;
   white-space: pre-wrap;
 }
@@ -491,7 +492,7 @@
   gap: 5px;
   margin-top: 20px;
   font-size: 0.78rem;
-  color: rgba(26, 26, 46, 0.35);
+  color: var(--text-tertiary);
   background: none;
   cursor: pointer;
   transition: color 0.15s;
@@ -516,12 +517,12 @@
   font-weight: 600;
   white-space: nowrap;
   z-index: 600;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 20px var(--shadow-md);
 }
 
 .gb-toast--success {
-  background: #1a1a2e;
-  color: #ffffff;
+  background: var(--text-primary);
+  color: var(--bg-primary);
 }
 
 .gb-toast--error {

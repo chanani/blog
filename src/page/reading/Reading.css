@@ -47,11 +47,7 @@
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-}
-
-[data-theme='dark'] .stat-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px var(--shadow-sm);
 }
 
 .stat-card.stat-all:hover { border-color: var(--accent-primary); }
@@ -117,12 +113,7 @@
 
 .recent-card:hover,
 .books-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-[data-theme='dark'] .recent-card:hover,
-[data-theme='dark'] .books-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px var(--shadow-sm);
 }
 
 .card-header {
@@ -493,11 +484,7 @@
 
 .grid-book-card:hover .grid-cover-wrap {
   border-color: var(--accent-primary);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-}
-
-[data-theme='dark'] .grid-book-card:hover .grid-cover-wrap {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 16px var(--shadow-sm);
 }
 
 .grid-cover-img {

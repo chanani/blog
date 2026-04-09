@@ -1,7 +1,7 @@
 :root {
   --bg-primary: #ffffff;
   --bg-secondary: #f6f6f6;
-  --bg-tertiary: #ffffff;
+  --bg-tertiary: #efefef;
   --text-primary: #0a0a0a;
   --text-secondary: #555555;
   --text-tertiary: #999999;
@@ -14,6 +14,9 @@
   --radius-lg: 10px;
   --max-width: 1080px;
   --header-height: 56px;
+  --shadow-sm: rgba(0, 0, 0, 0.06);
+  --shadow-md: rgba(0, 0, 0, 0.1);
+  --shadow-lg: rgba(0, 0, 0, 0.14);
 }
 
 [data-theme='dark'] {
@@ -27,6 +30,9 @@
   --accent-light: #2a1e0e;
   --accent-hover: #ffaa55;
   --border-color: #2a2a2a;
+  --shadow-sm: rgba(0, 0, 0, 0.3);
+  --shadow-md: rgba(0, 0, 0, 0.45);
+  --shadow-lg: rgba(0, 0, 0, 0.55);
 }
 
 .app {
