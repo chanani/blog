@@ -145,7 +145,7 @@
 }
 
 .chapter-article {
-  background: #f6f6f6;
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   overflow: hidden;
