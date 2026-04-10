@@ -55,7 +55,7 @@ function SortDropdown({ value, onChange }) {
 function isNew(dateStr) {
   if (!dateStr) return false;
   const diff = Date.now() - new Date(dateStr).getTime();
-  return diff >= 0 && diff < 5 * 24 * 60 * 60 * 1000;
+  return diff >= 0 && diff < 3 * 24 * 60 * 60 * 1000;
 }
 
 function PostItem({ post, index, commentCount, viewCount }) {
