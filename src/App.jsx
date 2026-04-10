@@ -35,7 +35,7 @@ function AppInner({ theme, toggleTheme }) {
       </div>
       {!isHomePage && (
         <button className="theme-toggle-float" onClick={toggleTheme} aria-label="테마 전환">
-          {theme === 'light' ? <FiMoon size={16} /> : <FiSun size={16} />}
+          {theme === 'light' ? <FiMoon size={22} /> : <FiSun size={22} />}
         </button>
       )}
     </div>
