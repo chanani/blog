@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight, oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { FiArrowLeft, FiCalendar, FiEdit3, FiChevronLeft, FiChevronRight, FiList, FiMinus, FiPlus, FiSettings, FiLink, FiCheck, FiCopy, FiShare2, FiEye, FiDownload } from 'react-icons/fi';
+import { FiArrowLeft, FiCalendar, FiEdit3, FiChevronLeft, FiChevronRight, FiList, FiMinus, FiPlus, FiSettings, FiLink, FiCheck, FiCopy, FiShare2, FiEye, FiDownload, FiLock, FiUnlock } from 'react-icons/fi';
 import Giscus from '@giscus/react';
 import useDevStore from '../../store/useDevStore';
 import { useLang } from '../../hooks/useLang';
@@ -82,7 +82,7 @@ function DevPost() {
   const navigate = useNavigate();
   const lang = useLang();
   const { t } = useTranslation();
-  const { currentPost, loading, error, loadPost, clearPost, getPostNav, currentSeries, loadSeries, clearSeries } = useDevStore();
+  const { currentPost, loading, error, loadPost, clearPost, getPostNav, currentSeries, loadSeries, clearSeries, visibility } = useDevStore();
   const { prev, next } = isEpisode ? { prev: null, next: null } : getPostNav(category, effectiveSlug);
 
   const [episodePrev, episodeNext] = useMemo(() => {
@@ -702,6 +702,16 @@ function DevPost() {
               <div className="devpost-meta-area">
                 <div className="devpost-meta-row">
                   <span className="post-category-badge">{currentPost.category}</span>
+                  {authenticated && (() => {
+                    const key = `${currentPost.category}/${currentPost.slug}`;
+                    const isPublic = visibility[key] !== false;
+                    return (
+                      <span className={`devpost-visibility-badge ${isPublic ? 'public' : 'private'}`}>
+                        {isPublic ? <FiUnlock size={11} /> : <FiLock size={11} />}
+                        {isPublic ? '공개' : '비공개'}
+                      </span>
+                    );
+                  })()}
                   {currentPost.date && (
                     <span className="devpost-date">
                       <FiCalendar size={13} />
