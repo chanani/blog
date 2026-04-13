@@ -165,6 +165,7 @@ function DevHome() {
     selectedCategory,
     searchQuery,
     posts,
+    visibility,
     commentCounts,
     loadPosts,
     setCategory,
@@ -277,7 +278,10 @@ function DevHome() {
                 >
                   <span>{cat === 'all' ? t('reading.all') : cat}</span>
                   <span className="sidebar-cat-count">
-                    {cat === 'all' ? posts.length : posts.filter((p) => p.category === cat).length}
+                    {(() => {
+                      const pub = posts.filter((p) => visibility[`${p.category}/${p.slug}`] !== false);
+                      return cat === 'all' ? pub.length : pub.filter((p) => p.category === cat).length;
+                    })()}
                   </span>
                 </button>
               </li>

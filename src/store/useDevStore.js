@@ -86,8 +86,12 @@ const useDevStore = create((set, get) => ({
   },
 
   getCategories: () => {
-    const { posts } = get();
-    const categories = [...new Set(posts.map((p) => p.category).filter(Boolean))];
+    const { visibility } = get();
+    const publicPosts = get().posts.filter((p) => {
+      const key = `${p.category}/${p.slug}`;
+      return visibility[key] !== false;
+    });
+    const categories = [...new Set(publicPosts.map((p) => p.category).filter(Boolean))];
     return ['all', ...categories.sort()];
   },
 
