@@ -82,7 +82,7 @@ function DevPost() {
   const navigate = useNavigate();
   const lang = useLang();
   const { t } = useTranslation();
-  const { currentPost, loading, error, loadPost, clearPost, getPostNav, currentSeries, loadSeries, clearSeries, visibility, loadPosts } = useDevStore();
+  const { currentPost, loading, error, loadPost, clearPost, getPostNav, currentSeries, loadSeries, clearSeries, visibility, loadVisibility } = useDevStore();
   const { prev, next } = isEpisode ? { prev: null, next: null } : getPostNav(category, effectiveSlug);
 
   const [episodePrev, episodeNext] = useMemo(() => {
@@ -482,8 +482,8 @@ function DevPost() {
       if (isEpisode && seriesSlug) loadSeries(category, seriesSlug);
       fetchViewCount(`/post/${category}/${isEpisode ? `${seriesSlug}/${effectiveSlug}` : effectiveSlug}`).then(setViewCount);
       fetchMemos();
-      // visibility가 로드 안 된 경우(직접 접근) 보완
-      if (Object.keys(visibility).length === 0) loadPosts();
+      // loading flag와 무관하게 visibility만 독립 로드
+      loadVisibility();
     }
     return () => {
       clearPost();

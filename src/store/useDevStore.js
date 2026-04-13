@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { fetchDevPostList, fetchDevPost, fetchDevDiscussionCounts, fetchSeriesInfo, fetchSeriesEpisode, fetchVisibility } from '../api/github';
 
+let visibilityLoading = false;
+
 const useDevStore = create((set, get) => ({
   posts: [],
   visibility: {},
@@ -65,6 +67,19 @@ const useDevStore = create((set, get) => ({
   refreshPosts: () => {
     set({ posts: [], loadedAt: null });
     get().loadPosts();
+  },
+
+  // loadPost() 중에도 loading flag와 무관하게 visibility만 독립적으로 로드
+  loadVisibility: async () => {
+    const { visibility } = get();
+    if (Object.keys(visibility).length > 0 || visibilityLoading) return;
+    visibilityLoading = true;
+    try {
+      const vis = await fetchVisibility();
+      set({ visibility: vis });
+    } catch { /* silent */ } finally {
+      visibilityLoading = false;
+    }
   },
 
 
