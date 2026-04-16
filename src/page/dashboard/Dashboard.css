@@ -35,6 +35,8 @@
   color: #ffffff;
   line-height: 1.05;
   letter-spacing: -0.03em;
+  cursor: default;
+  will-change: transform;
 }
 
 .hero-info {

@@ -10,6 +10,28 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 1.1, ease: [0.22, 1, 0.36, 1], delay },
 });
 
+const charHover = {
+  type: 'spring',
+  stiffness: 500,
+  damping: 22,
+};
+
+function AnimatedLine({ text }) {
+  return (
+    <>
+      {text.split('').map((char, i) => (
+        <motion.span
+          key={i}
+          style={{ display: 'inline-block', whiteSpace: 'pre' }}
+          whileHover={{ y: -10, transition: charHover }}
+        >
+          {char}
+        </motion.span>
+      ))}
+    </>
+  );
+}
+
 function Dashboard() {
   const { t } = useTranslation();
 
@@ -38,9 +60,9 @@ function Dashboard() {
       <div className="hero-inner">
         <div className="hero-text">
           <h1>
-            <motion.span className="hero-line" {...fadeUp(0)}>{t('hero.line1')}</motion.span>
-            <motion.span className="hero-line" {...fadeUp(0.18)}>{t('hero.line2')}</motion.span>
-            <motion.span className="hero-line" {...fadeUp(0.36)}>{t('hero.line3')}</motion.span>
+            <motion.span className="hero-line" {...fadeUp(0)}><AnimatedLine text={t('hero.line1')} /></motion.span>
+            <motion.span className="hero-line" {...fadeUp(0.18)}><AnimatedLine text={t('hero.line2')} /></motion.span>
+            <motion.span className="hero-line" {...fadeUp(0.36)}><AnimatedLine text={t('hero.line3')} /></motion.span>
           </h1>
         </div>
 
