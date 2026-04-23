@@ -68,16 +68,16 @@ function Dashboard() {
 
         <motion.div className="hero-info" {...fadeUp(0.55)}>
           <div className="hero-info-item">
-            <span className="hero-info-label">{t('hero.locationLabel')}</span>
-            <span className="hero-info-value">{t('hero.locationValue')}</span>
+            <span className="hero-info-label"><AnimatedLine text={t('hero.locationLabel')} /></span>
+            <span className="hero-info-value"><AnimatedLine text={t('hero.locationValue')} /></span>
           </div>
           <div className="hero-info-item">
-            <span className="hero-info-label">{t('hero.roleLabel')}</span>
-            <span className="hero-info-value">{t('hero.roleValue')}</span>
+            <span className="hero-info-label"><AnimatedLine text={t('hero.roleLabel')} /></span>
+            <span className="hero-info-value"><AnimatedLine text={t('hero.roleValue')} /></span>
           </div>
           <div className="hero-info-item">
-            <span className="hero-info-label">{t('hero.contactLabel')}</span>
-            <span className="hero-info-value">theholidaynight@gmail.com</span>
+            <span className="hero-info-label"><AnimatedLine text={t('hero.contactLabel')} /></span>
+            <span className="hero-info-value"><AnimatedLine text="theholidaynight@gmail.com" /></span>
           </div>
         </motion.div>
       </div>
