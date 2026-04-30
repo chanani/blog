@@ -889,17 +889,27 @@ export async function saveDevPost({ category, slug, title, date, tags, descripti
   const frontmatter = `---\ntitle: "${title}"\ndate: "${date}"\ntags: ${tagStr}\ndescription: "${description}"\n---\n`;
   const encoded = btoa(unescape(encodeURIComponent(frontmatter + content)));
 
-  // Always folder format: dev/{category}/{slug}/{slug}.md
-  const mdFilePath = `${DEV_PATH}/${category}/${slug}/${slug}.md`;
-  const mdEncodedPath = mdFilePath.split('/').map(encodeURIComponent).join('/');
+  const encCat = encodeURIComponent(category);
+  const encSlug = encodeURIComponent(slug);
+  const folderEncodedPath = `${DEV_PATH}/${encCat}/${encSlug}`;
 
+  // 폴더 목록에서 실제 .md 파일명과 SHA를 직접 가져옴
+  // (slug.md 로 가정하면 파일명이 다를 때 새 파일이 생기는 버그 방지)
+  let mdFileName = `${slug}.md`;
   let sha;
   try {
-    const { data } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${mdEncodedPath}`);
-    sha = data.sha;
+    const { data: folderFiles } = await githubApi.get(`/repos/${OWNER}/${REPO}/contents/${folderEncodedPath}`);
+    const decodedFiles = folderFiles.map((f) => ({ ...f, name: decodeGitQuotedName(f.name) }));
+    const mdFile = findMarkdown(decodedFiles);
+    if (mdFile) {
+      mdFileName = mdFile.name;
+      sha = mdFile.sha;
+    }
   } catch {
     sha = undefined;
   }
+
+  const mdEncodedPath = `${folderEncodedPath}/${encodeURIComponent(mdFileName)}`;
 
   await githubApi.put(`/repos/${OWNER}/${REPO}/contents/${mdEncodedPath}`, {
     message: sha ? `docs: update post ${category}/${slug}` : `docs: add post ${category}/${slug}`,
