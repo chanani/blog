@@ -1820,6 +1820,40 @@ a.admin-discussion-item:hover {
   font-weight: 600;
 }
 
+/* ── Split View ── */
+.md-split {
+  display: flex;
+  flex: 1;
+  min-height: 380px;
+  overflow: hidden;
+}
+
+.md-split .md-textarea {
+  flex: 1;
+  min-height: unset;
+  resize: none;
+  border-right: none;
+}
+
+.md-split-divider {
+  width: 1px;
+  background: var(--border-color);
+  flex-shrink: 0;
+}
+
+.md-split .md-preview {
+  flex: 1;
+  min-height: unset;
+  border-left: none;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .md-split-btn {
+    display: none;
+  }
+}
+
 /* ── Toast ── */
 .write-toast {
   position: fixed;

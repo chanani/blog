@@ -4,6 +4,9 @@ import { useAuth } from '../../context/AuthContext';
 import { FiLock, FiChevronDown, FiChevronUp, FiChevronRight, FiChevronLeft, FiMessageCircle, FiMessageSquare, FiEdit3, FiCheck, FiX, FiPlus, FiFile, FiImage, FiCalendar, FiTrash2, FiList } from 'react-icons/fi';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneLight, oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { saveDevPost, saveBookChapter, saveNewBook, deleteGithubFile, copyGithubFile, fetchFolderFiles, fetchDevTree, fetchBookTree, fetchDevPost, fetchChapter, fetchBookInfo, uploadImage, saveSeriesInfo, saveSeriesEpisode, fetchSeriesInfo, fetchSeriesEpisode, fetchVisibility, saveVisibility } from '../../api/github';
 import useDevStore from '../../store/useDevStore';
 import './Admin.css';
@@ -312,6 +315,33 @@ function Toast({ toast, onDismiss }) {
   );
 }
 
+function MarkdownPreview({ value }) {
+  const theme = document.documentElement.getAttribute('data-theme') || 'light';
+  return (
+    <div className="md-preview">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw]}
+        components={{
+          code({ inline, className, children }) {
+            const match = /language-(\w+)/.exec(className || '');
+            if (!inline && match) {
+              return (
+                <SyntaxHighlighter style={theme === 'dark' ? oneDark : oneLight} language={match[1]} PreTag="div">
+                  {String(children).replace(/\n$/, '')}
+                </SyntaxHighlighter>
+              );
+            }
+            return <code className={className}>{children}</code>;
+          },
+        }}
+      >
+        {value || '*내용이 없습니다.*'}
+      </ReactMarkdown>
+    </div>
+  );
+}
+
 function MarkdownEditor({ value, onChange, onImageUpload }) {
   const [mode, setMode] = useState('edit');
   const [uploading, setUploading] = useState(false);
@@ -450,10 +480,24 @@ function MarkdownEditor({ value, onChange, onImageUpload }) {
         <div className="md-toolbar-spacer" />
         <div className="md-toolbar-group">
           <button type="button" className={`md-toolbar-btn md-mode-btn${mode === 'edit' ? ' active' : ''}`} onClick={() => setMode('edit')}>편집</button>
+          <button type="button" className={`md-toolbar-btn md-mode-btn md-split-btn${mode === 'split' ? ' active' : ''}`} onClick={() => setMode('split')}>분할</button>
           <button type="button" className={`md-toolbar-btn md-mode-btn${mode === 'preview' ? ' active' : ''}`} onClick={() => setMode('preview')}>미리보기</button>
         </div>
       </div>
-      {mode === 'edit' ? (
+      {mode === 'split' ? (
+        <div className="md-split">
+          <textarea
+            ref={taRef}
+            className="md-textarea"
+            placeholder="마크다운으로 작성하세요..."
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <div className="md-split-divider" />
+          <MarkdownPreview value={value} />
+        </div>
+      ) : mode === 'edit' ? (
         <textarea
           ref={taRef}
           className="md-textarea"
@@ -464,9 +508,7 @@ function MarkdownEditor({ value, onChange, onImageUpload }) {
           required
         />
       ) : (
-        <div className="md-preview">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{value || '*내용이 없습니다.*'}</ReactMarkdown>
-        </div>
+        <MarkdownPreview value={value} />
       )}
     </div>
   );
